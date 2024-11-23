@@ -112,6 +112,9 @@
             margin-bottom: 5px;
             color: #666;
         }
+        .amount-input {
+            text-align: right;
+        }
     </style>
 </head>
 <body>
@@ -123,7 +126,7 @@
             <div class="card">
                 <h2 class="section-heading">Monthly Income</h2>
                 <label class="input-label">Enter your take-home pay</label>
-                <input type="number" id="monthly-income" placeholder="Enter amount">
+                <input type="number" id="monthly-income" class="amount-input" placeholder="Enter amount">
             </div>
 
             <!-- Savings -->
@@ -131,11 +134,11 @@
                 <h2 class="section-heading">Monthly Savings</h2>
                 <div style="margin-bottom: 15px;">
                     <label class="input-label">ISA Contribution</label>
-                    <input type="number" id="isa-amount" placeholder="ISA amount">
+                    <input type="number" id="isa-amount" class="amount-input" placeholder="ISA amount">
                 </div>
                 <div>
                     <label class="input-label">Emergency Fund</label>
-                    <input type="number" id="emergency-amount" placeholder="Emergency fund amount">
+                    <input type="number" id="emergency-amount" class="amount-input" placeholder="Emergency fund amount">
                 </div>
             </div>
         </div>
@@ -203,50 +206,24 @@
             emergencyFund: 0
         };
 
-        // Try to load data from IndexedDB
-        const dbName = 'financeDB';
-        const storeName = 'financeStore';
-        let db;
-
-        const request = indexedDB.open(dbName, 1);
-
-        request.onerror = function(event) {
-            console.error("Database error: " + event.target.error);
-        };
-
-        request.onupgrade = function(event) {
-            const db = event.target.result;
-            const store = db.createObjectStore(storeName, { keyPath: 'id' });
-        };
-
-        request.onsuccess = function(event) {
-            db = event.target.result;
-            loadData();
-        };
-
-        function loadData() {
-            const transaction = db.transaction([storeName], 'readonly');
-            const store = transaction.objectStore(storeName);
-            const request = store.get('userData');
-
-            request.onsuccess = function(event) {
-                if (event.target.result) {
-                    financeData = event.target.result.data;
-                    updateAllDisplays();
-                }
-            };
+        // Load saved data when page loads
+        function loadSavedData() {
+            const saved = localStorage.getItem('financeData');
+            if (saved) {
+                financeData = JSON.parse(saved);
+                updateAllDisplays();
+            }
         }
 
+        // Save data
         function saveData() {
-            const transaction = db.transaction([storeName], 'readwrite');
-            const store = transaction.objectStore(storeName);
-            store.put({ id: 'userData', data: financeData });
+            localStorage.setItem('financeData', JSON.stringify(financeData));
         }
 
         function updateAllDisplays() {
-            document.getElementById('monthly-income').value = financeData.monthlyIncome;
-            document.getElementById('isa-amount').value = financeData.isaSavings;
-            document.getElementById('emergency-amount').value = financeData.emergencyFund;
+            document.getElementById('monthly-income').value = financeData.monthlyIncome || '';
+            document.getElementById('isa-amount').value = financeData.isaSavings || '';
+            document.getElementById('emergency-amount').value = financeData.emergencyFund || '';
             updateExpenseList();
             updateSummary();
             updateChart();
@@ -254,13 +231,15 @@
         }
 
         function addExpense() {
-            const name = document.getElementById('expense-name').value;
-            const amount = parseFloat(document.getElementById('expense-amount').value);
+            const nameInput = document.getElementById('expense-name');
+            const amountInput = document.getElementById('expense-amount');
+            const name = nameInput.value.trim();
+            const amount = parseFloat(amountInput.value);
 
             if (name && amount > 0) {
                 financeData.expenses.push({ name, amount });
-                document.getElementById('expense-name').value = '';
-                document.getElementById('expense-amount').value = '';
+                nameInput.value = '';
+                amountInput.value = '';
                 saveData();
                 updateAllDisplays();
             }
@@ -309,29 +288,38 @@
                 window.myChart.destroy();
             }
 
-            window.myChart = new Chart(ctx, {
-                type: 'pie',
-                data: {
-                    labels: data.map(item => item.name),
-                    datasets: [{
-                        data: data.map(item => item.amount),
-                        backgroundColor: [
-                            '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
-                            '#FF9F40', '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'
-                        ]
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false
-                }
-            });
+            if (data.length > 0) {
+                window.myChart = new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: data.map(item => item.name),
+                        datasets: [{
+                            data: data.map(item => item.amount),
+                            backgroundColor: [
+                                '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+                                '#FF9F40', '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+            }
         }
 
         function updateHealthIndicator() {
             const income = financeData.monthlyIncome;
             const totalExpenses = financeData.expenses.reduce((sum, expense) => sum + expense.amount, 0);
             const totalSavings = financeData.isaSavings + financeData.emergencyFund;
+            
+            if (income === 0) {
+                document.getElementById('health-indicator').className = 'health-indicator health-warning';
+                document.getElementById('health-indicator').textContent = 'Please enter your monthly income to see financial health status.';
+                return;
+            }
+
             const savingsRate = (totalSavings / income) * 100;
             const expenseRate = (totalExpenses / income) * 100;
 
@@ -354,24 +342,34 @@
             indicator.textContent = message;
         }
 
-        // Event listeners for input changes
-        document.getElementById('monthly-income').addEventListener('change', function(e) {
+        // Event listeners for real-time updates
+        document.getElementById('monthly-income').addEventListener('input', function(e) {
             financeData.monthlyIncome = parseFloat(e.target.value) || 0;
             saveData();
             updateAllDisplays();
         });
 
-        document.getElementById('isa-amount').addEventListener('change', function(e) {
+        document.getElementById('isa-amount').addEventListener('input', function(e) {
             financeData.isaSavings = parseFloat(e.target.value) || 0;
             saveData();
             updateAllDisplays();
         });
 
-        document.getElementById('emergency-amount').addEventListener('change', function(e) {
+        document.getElementById('emergency-amount').addEventListener('input', function(e) {
             financeData.emergencyFund = parseFloat(e.target.value) || 0;
             saveData();
             updateAllDisplays();
         });
+
+        // Enter key handler for expenses
+        document.getElementById('expense-amount').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addExpense();
+            }
+        });
+
+        // Initialize dashboard
+        loadSavedData();
     </script>
 </body>
 </html>
