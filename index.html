@@ -28,37 +28,72 @@
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 20px;
         }
-        input, button {
-            padding: 10px;
+        input {
+            padding: 8px 12px;
             border: 1px solid #ddd;
             border-radius: 4px;
-            margin: 5px 0;
+            font-size: 14px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .expense-form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+        .expense-input {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .expense-name {
+            flex-grow: 2;
+        }
+        .expense-amount {
+            width: 120px;
         }
         button {
-            background: #007bff;
+            padding: 8px 16px;
+            background: #4285f4;
             color: white;
             border: none;
+            border-radius: 4px;
             cursor: pointer;
         }
         button:hover {
-            background: #0056b3;
+            background: #3367d6;
+        }
+        .expense-list {
+            border-top: 1px solid #eee;
         }
         .expense-item {
-            display: grid;
-            grid-template-columns: 1fr auto auto;
-            gap: 10px;
-            padding: 10px;
-            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
             align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
         }
-        .expense-form {
-            display: grid;
-            grid-template-columns: 1fr auto;
-            gap: 10px;
-            margin-bottom: 20px;
+        .expense-details {
+            display: flex;
+            justify-content: space-between;
+            flex-grow: 1;
+            margin-right: 20px;
+        }
+        .remove-button {
+            padding: 4px 12px;
+            font-size: 12px;
         }
         .chart-container {
             height: 300px;
+            margin-top: 20px;
+        }
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
         }
         .health-indicator {
             padding: 15px;
@@ -68,69 +103,60 @@
         .health-good { background-color: #d4edda; color: #155724; }
         .health-warning { background-color: #fff3cd; color: #856404; }
         .health-danger { background-color: #f8d7da; color: #721c24; }
-        .form-group {
-            margin-bottom: 15px;
+        .section-heading {
+            margin: 0 0 15px 0;
+            font-size: 1.2em;
         }
-        .form-group label {
+        .input-label {
             display: block;
             margin-bottom: 5px;
-            font-weight: bold;
-        }
-        .summary-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid #eee;
+            color: #666;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Personal Finance Dashboard</h1>
+        <h1>Finance Dashboard</h1>
 
-        <!-- Monthly Income -->
-        <div class="card">
-            <h2>Monthly Income</h2>
-            <div class="form-group">
-                <input type="number" id="monthly-income" placeholder="Enter your monthly income" class="form-control">
-            </div>
-        </div>
-
-        <!-- Savings Allocations -->
         <div class="grid">
-            <!-- ISA Allocation -->
+            <!-- Monthly Income -->
             <div class="card">
-                <h2>ISA Contribution</h2>
-                <div class="form-group">
-                    <input type="number" id="isa-amount" placeholder="Amount for ISA">
-                </div>
+                <h2 class="section-heading">Monthly Income</h2>
+                <label class="input-label">Enter your take-home pay</label>
+                <input type="number" id="monthly-income" placeholder="Enter amount">
             </div>
 
-            <!-- Emergency Fund Allocation -->
+            <!-- Savings -->
             <div class="card">
-                <h2>Emergency Fund</h2>
-                <div class="form-group">
-                    <input type="number" id="emergency-amount" placeholder="Amount for Emergency Fund">
+                <h2 class="section-heading">Monthly Savings</h2>
+                <div style="margin-bottom: 15px;">
+                    <label class="input-label">ISA Contribution</label>
+                    <input type="number" id="isa-amount" placeholder="ISA amount">
+                </div>
+                <div>
+                    <label class="input-label">Emergency Fund</label>
+                    <input type="number" id="emergency-amount" placeholder="Emergency fund amount">
                 </div>
             </div>
         </div>
 
         <!-- Expenses -->
         <div class="card">
-            <h2>Monthly Expenses</h2>
+            <h2 class="section-heading">Monthly Expenses</h2>
             <div class="expense-form">
-                <input type="text" id="expense-name" placeholder="Expense name">
-                <input type="number" id="expense-amount" placeholder="Amount">
-                <button onclick="addExpense()">Add Expense</button>
+                <input type="text" class="expense-input expense-name" id="expense-name" placeholder="Expense name">
+                <input type="number" class="expense-input expense-amount" id="expense-amount" placeholder="Amount">
+                <button onclick="addExpense()">Add</button>
             </div>
-            <div id="expenses-list"></div>
+            <div id="expenses-list" class="expense-list">
+                <!-- Expenses will be listed here -->
+            </div>
         </div>
 
-        <!-- Summary -->
         <div class="grid">
-            <!-- Financial Breakdown -->
+            <!-- Summary -->
             <div class="card">
-                <h2>Financial Summary</h2>
+                <h2 class="section-heading">Financial Summary</h2>
                 <div class="summary-item">
                     <span>Total Income:</span>
                     <span id="total-income">£0.00</span>
@@ -140,7 +166,7 @@
                     <span id="total-expenses">£0.00</span>
                 </div>
                 <div class="summary-item">
-                    <span>ISA Contribution:</span>
+                    <span>ISA Savings:</span>
                     <span id="total-isa">£0.00</span>
                 </div>
                 <div class="summary-item">
@@ -153,9 +179,9 @@
                 </div>
             </div>
 
-            <!-- Pie Chart -->
+            <!-- Chart -->
             <div class="card">
-                <h2>Spending Breakdown</h2>
+                <h2 class="section-heading">Spending Breakdown</h2>
                 <div class="chart-container">
                     <canvas id="expense-chart"></canvas>
                 </div>
@@ -164,13 +190,12 @@
 
         <!-- Financial Health -->
         <div class="card">
-            <h2>Financial Health</h2>
+            <h2 class="section-heading">Financial Health</h2>
             <div id="health-indicator" class="health-indicator"></div>
         </div>
     </div>
 
     <script>
-        // Initialize data structure
         let financeData = {
             monthlyIncome: 0,
             expenses: [],
@@ -178,21 +203,46 @@
             emergencyFund: 0
         };
 
-        // Load saved data
-        function loadSavedData() {
-            const saved = localStorage.getItem('financeData');
-            if (saved) {
-                financeData = JSON.parse(saved);
-                updateAllDisplays();
-            }
+        // Try to load data from IndexedDB
+        const dbName = 'financeDB';
+        const storeName = 'financeStore';
+        let db;
+
+        const request = indexedDB.open(dbName, 1);
+
+        request.onerror = function(event) {
+            console.error("Database error: " + event.target.error);
+        };
+
+        request.onupgrade = function(event) {
+            const db = event.target.result;
+            const store = db.createObjectStore(storeName, { keyPath: 'id' });
+        };
+
+        request.onsuccess = function(event) {
+            db = event.target.result;
+            loadData();
+        };
+
+        function loadData() {
+            const transaction = db.transaction([storeName], 'readonly');
+            const store = transaction.objectStore(storeName);
+            const request = store.get('userData');
+
+            request.onsuccess = function(event) {
+                if (event.target.result) {
+                    financeData = event.target.result.data;
+                    updateAllDisplays();
+                }
+            };
         }
 
-        // Save data
         function saveData() {
-            localStorage.setItem('financeData', JSON.stringify(financeData));
+            const transaction = db.transaction([storeName], 'readwrite');
+            const store = transaction.objectStore(storeName);
+            store.put({ id: 'userData', data: financeData });
         }
 
-        // Update all displays
         function updateAllDisplays() {
             document.getElementById('monthly-income').value = financeData.monthlyIncome;
             document.getElementById('isa-amount').value = financeData.isaSavings;
@@ -203,7 +253,6 @@
             updateHealthIndicator();
         }
 
-        // Add expense
         function addExpense() {
             const name = document.getElementById('expense-name').value;
             const amount = parseFloat(document.getElementById('expense-amount').value);
@@ -217,26 +266,25 @@
             }
         }
 
-        // Remove expense
         function removeExpense(index) {
             financeData.expenses.splice(index, 1);
             saveData();
             updateAllDisplays();
         }
 
-        // Update expense list
         function updateExpenseList() {
             const list = document.getElementById('expenses-list');
             list.innerHTML = financeData.expenses.map((expense, index) => `
                 <div class="expense-item">
-                    <span>${expense.name}</span>
-                    <span>£${expense.amount.toFixed(2)}</span>
-                    <button onclick="removeExpense(${index})">Remove</button>
+                    <div class="expense-details">
+                        <span>${expense.name}</span>
+                        <span>£${expense.amount.toFixed(2)}</span>
+                    </div>
+                    <button class="remove-button" onclick="removeExpense(${index})">Remove</button>
                 </div>
             `).join('');
         }
 
-        // Update financial summary
         function updateSummary() {
             const totalExpenses = financeData.expenses.reduce((sum, expense) => sum + expense.amount, 0);
             const remaining = financeData.monthlyIncome - totalExpenses - financeData.isaSavings - financeData.emergencyFund;
@@ -248,23 +296,19 @@
             document.getElementById('remaining').textContent = `£${remaining.toFixed(2)}`;
         }
 
-        // Update pie chart
         function updateChart() {
             const ctx = document.getElementById('expense-chart').getContext('2d');
             
-            // Collect all financial items
             const data = [
                 ...financeData.expenses.map(e => ({ name: e.name, amount: e.amount })),
                 { name: 'ISA', amount: financeData.isaSavings },
                 { name: 'Emergency Fund', amount: financeData.emergencyFund }
-            ];
+            ].filter(item => item.amount > 0);
 
-            // If there's an existing chart, destroy it
             if (window.myChart) {
                 window.myChart.destroy();
             }
 
-            // Create new chart
             window.myChart = new Chart(ctx, {
                 type: 'pie',
                 data: {
@@ -284,7 +328,6 @@
             });
         }
 
-        // Update health indicator
         function updateHealthIndicator() {
             const income = financeData.monthlyIncome;
             const totalExpenses = financeData.expenses.reduce((sum, expense) => sum + expense.amount, 0);
@@ -329,9 +372,6 @@
             saveData();
             updateAllDisplays();
         });
-
-        // Load data when page loads
-        loadSavedData();
     </script>
 </body>
 </html>
