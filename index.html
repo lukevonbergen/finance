@@ -823,5 +823,222 @@ document.addEventListener('DOMContentLoaded', () => {
     Chart.defaults.responsive = true;
 });
 </script>
+
+    <script>
+// Helper Functions
+function renderExpensesList(expenses) {
+    if (!expenses || expenses.length === 0) {
+        return '<p>No expenses recorded</p>';
+    }
+
+    return expenses.map((expense, index) => `
+        <div class="expense-item">
+            <span>${expense.name}</span>
+            <span>${formatCurrency(expense.amount)}</span>
+            <span>${expense.category}</span>
+            <button class="btn btn-danger" onclick="removeExpense(${index})">Remove</button>
+        </div>
+    `).join('');
+}
+
+function renderYearlyTable(yearlyData) {
+    return `
+        <table>
+            <thead>
+                <tr>
+                    <th>Month</th>
+                    <th>Income</th>
+                    <th>Expenses</th>
+                    <th>Savings</th>
+                    <th>Remaining</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${Object.entries(yearlyData.monthlyData).map(([month, data]) => `
+                    <tr>
+                        <td>${formatMonth(month)}</td>
+                        <td>${formatCurrency(data.income)}</td>
+                        <td>${formatCurrency(data.expenses)}</td>
+                        <td>${formatCurrency(data.savings)}</td>
+                        <td>${formatCurrency(data.income - data.expenses - data.savings)}</td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+    `;
+}
+
+function renderSavingsCharts() {
+    const ctx = document.getElementById('savings-overview-chart').getContext('2d');
+    
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: Object.values(dashboardData.savings).map(s => s.name),
+            datasets: [{
+                label: 'Current Amount',
+                data: Object.values(dashboardData.savings).map(s => s.current),
+                backgroundColor: Object.values(dashboardData.savings).map(s => s.color),
+            }, {
+                label: 'Target',
+                data: Object.values(dashboardData.savings).map(s => s.target),
+                type: 'line',
+                borderColor: '#000',
+                fill: false
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+}
+
+function showSettings() {
+    const modal = document.getElementById('settings-modal');
+    modal.style.display = 'flex';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <h2>Settings</h2>
+            <div class="input-group">
+                <label>Currency</label>
+                <input type="text" id="currency-setting" value="${dashboardData.settings.currency}">
+            </div>
+            <div class="input-group">
+                <label>Monthly Income Target</label>
+                <input type="number" id="income-target-setting" value="${dashboardData.settings.monthlyIncomeTarget}">
+            </div>
+            <div class="input-group">
+                <label>Monthly Savings Target</label>
+                <input type="number" id="savings-target-setting" value="${dashboardData.settings.monthlySavingsTarget}">
+            </div>
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="saveSettings()">Save</button>
+                <button class="btn btn-danger" onclick="closeSettings()">Cancel</button>
+            </div>
+        </div>
+    `;
+}
+
+function calculateHealthScores() {
+    const scores = {
+        savingsRate: 0,
+        expenseRatio: 0,
+        emergencyFund: 0,
+        overallHealth: 0
+    };
+
+    const yearlyData = calculateYearlyData();
+    
+    // Calculate savings rate
+    scores.savingsRate = (yearlyData.totalSavings / yearlyData.totalIncome) * 100;
+    
+    // Calculate expense ratio
+    scores.expenseRatio = (yearlyData.totalExpenses / yearlyData.totalIncome) * 100;
+    
+    // Calculate emergency fund status
+    const emergencyTarget = dashboardData.savings.emergency.target;
+    const emergencyCurrent = dashboardData.savings.emergency.current;
+    scores.emergencyFund = (emergencyCurrent / emergencyTarget) * 100;
+    
+    // Calculate overall health (weighted average)
+    scores.overallHealth = (
+        (scores.savingsRate * 0.4) +
+        ((100 - scores.expenseRatio) * 0.3) +
+        (scores.emergencyFund * 0.3)
+    );
+
+    return scores;
+}
+
+function addToSavings(category) {
+    const amount = parseFloat(document.getElementById(`savings-input-${category}`).value);
+    if (amount > 0) {
+        dashboardData.savings[category].current += amount;
+        
+        // Add to monthly tracking
+        const currentMonthKey = getCurrentMonthKey();
+        if (!dashboardData.monthlyData[currentMonthKey].savings[category]) {
+            dashboardData.monthlyData[currentMonthKey].savings[category] = 0;
+        }
+        dashboardData.monthlyData[currentMonthKey].savings[category] += amount;
+        
+        saveData();
+        renderSavingsView();
+        showNotification(`Added ${formatCurrency(amount)} to ${dashboardData.savings[category].name}`, 'success');
+    }
+}
+
+function updateSavingsGoal(category) {
+    const newTarget = prompt(`Enter new target for ${dashboardData.savings[category].name}:`, dashboardData.savings[category].target);
+    if (newTarget && !isNaN(newTarget)) {
+        dashboardData.savings[category].target = parseFloat(newTarget);
+        saveData();
+        renderSavingsView();
+        showNotification(`Updated target for ${dashboardData.savings[category].name}`, 'success');
+    }
+}
+
+function formatMonth(monthKey) {
+    const [year, month] = monthKey.split('-');
+    const date = new Date(year, month - 1);
+    return date.toLocaleDateString('en-UK', { month: 'long', year: 'numeric' });
+}
+
+function analyzeSpendingPatterns() {
+    // Implement spending pattern analysis
+    return {};
+}
+
+function analyzeSavingsProgress() {
+    // Implement savings progress analysis
+    return {};
+}
+
+function generateInsights() {
+    // Implement insights generation
+    return [];
+}
+
+function renderHealthIndicators(healthScores) {
+    return `
+        <div class="health-indicators">
+            <div class="indicator">
+                <h3>Savings Rate</h3>
+                <p>${healthScores.savingsRate.toFixed(1)}%</p>
+            </div>
+            <div class="indicator">
+                <h3>Expense Ratio</h3>
+                <p>${healthScores.expenseRatio.toFixed(1)}%</p>
+            </div>
+            <div class="indicator">
+                <h3>Emergency Fund</h3>
+                <p>${healthScores.emergencyFund.toFixed(1)}%</p>
+            </div>
+            <div class="indicator">
+                <h3>Overall Health</h3>
+                <p>${healthScores.overallHealth.toFixed(1)}%</p>
+            </div>
+        </div>
+    `;
+}
+
+function renderFinancialInsights(analyticsData) {
+    return `
+        <div class="insights-container">
+            <h3>Key Insights</h3>
+            <ul>
+                <li>Your savings rate is ${analyticsData.healthScores.savingsRate.toFixed(1)}%</li>
+                <li>Your expense ratio is ${analyticsData.healthScores.expenseRatio.toFixed(1)}%</li>
+                <li>Your emergency fund is ${analyticsData.healthScores.emergencyFund.toFixed(1)}% funded</li>
+            </ul>
+        </div>
+    `;
+}
+</script>
 </body>
 </html>
