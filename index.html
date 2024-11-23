@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Finance Dashboard</title>
-    <!-- Chart.js for pie chart -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
     <style>
         body {
@@ -86,16 +85,32 @@
         .warning { background-color: #fff3cd; color: #856404; }
         .success { background-color: #d4edda; color: #155724; }
         .danger { background-color: #f8d7da; color: #721c24; }
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .export-btn {
+            background: #28a745;
+        }
+        .clear-btn {
+            background: #dc3545;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Finance Dashboard</h1>
         
+        <div class="actions">
+            <button onclick="exportData()" class="export-btn">Export Data</button>
+            <button onclick="clearData()" class="clear-btn">Clear All Data</button>
+        </div>
+
         <!-- Income Input -->
         <div class="card">
             <h2>Monthly Income</h2>
-            <input type="number" id="income-input" placeholder="Enter monthly income" onchange="updateDashboard()">
+            <input type="number" id="income-input" placeholder="Enter monthly income" onchange="updateIncome(this.value)">
         </div>
 
         <!-- Summary Cards -->
@@ -144,7 +159,32 @@
 
     <script>
         let expenses = [];
+        let monthlyIncome = 0;
         let chart = null;
+
+        // Load saved data when page loads
+        function loadSavedData() {
+            const savedIncome = localStorage.getItem('monthlyIncome');
+            const savedExpenses = localStorage.getItem('expenses');
+            
+            if (savedIncome) {
+                monthlyIncome = parseFloat(savedIncome);
+                document.getElementById('income-input').value = monthlyIncome;
+            }
+            
+            if (savedExpenses) {
+                expenses = JSON.parse(savedExpenses);
+                updateExpenseList();
+            }
+            
+            updateDashboard();
+        }
+
+        // Save data to localStorage
+        function saveData() {
+            localStorage.setItem('monthlyIncome', monthlyIncome.toString());
+            localStorage.setItem('expenses', JSON.stringify(expenses));
+        }
 
         function formatCurrency(amount) {
             return '£' + parseFloat(amount).toLocaleString('en-UK', {
@@ -153,21 +193,22 @@
             });
         }
 
-        function updateDashboard() {
-            const income = parseFloat(document.getElementById('income-input').value) || 0;
-            const totalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0);
-            const remaining = income - totalExpenses;
+        function updateIncome(value) {
+            monthlyIncome = parseFloat(value) || 0;
+            saveData();
+            updateDashboard();
+        }
 
-            // Update summary cards
-            document.getElementById('total-income').textContent = formatCurrency(income);
+        function updateDashboard() {
+            const totalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+            const remaining = monthlyIncome - totalExpenses;
+
+            document.getElementById('total-income').textContent = formatCurrency(monthlyIncome);
             document.getElementById('total-expenses').textContent = formatCurrency(totalExpenses);
             document.getElementById('remaining').textContent = formatCurrency(remaining);
 
-            // Update chart
             updateChart();
-
-            // Update feedback
-            updateFeedback(income, totalExpenses, remaining);
+            updateFeedback(monthlyIncome, totalExpenses, remaining);
         }
 
         function addExpense() {
@@ -181,6 +222,7 @@
                 expenses.push({ name, amount });
                 nameInput.value = '';
                 amountInput.value = '';
+                saveData();
                 updateExpenseList();
                 updateDashboard();
             }
@@ -188,6 +230,7 @@
 
         function removeExpense(index) {
             expenses.splice(index, 1);
+            saveData();
             updateExpenseList();
             updateDashboard();
         }
@@ -240,7 +283,7 @@
 
         function updateFeedback(income, expenses, remaining) {
             const feedback = document.getElementById('feedback');
-            const expenseRatio = (expenses / income) * 100;
+            const expenseRatio = income > 0 ? (expenses / income) * 100 : 0;
 
             if (income === 0) {
                 feedback.className = 'feedback warning';
@@ -257,8 +300,37 @@
             }
         }
 
-        // Initialize empty chart
-        updateChart();
+        function exportData() {
+            const data = {
+                monthlyIncome,
+                expenses,
+                date: new Date().toISOString()
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'finance-data.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function clearData() {
+            if (confirm('Are you sure you want to clear all data? This cannot be undone.')) {
+                localStorage.clear();
+                expenses = [];
+                monthlyIncome = 0;
+                document.getElementById('income-input').value = '';
+                updateExpenseList();
+                updateDashboard();
+            }
+        }
+
+        // Load saved data when page loads
+        loadSavedData();
     </script>
 </body>
 </html>
