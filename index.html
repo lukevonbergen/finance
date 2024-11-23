@@ -53,11 +53,14 @@
         }
         .expense-item {
             display: grid;
-            grid-template-columns: 1fr auto auto;
+            grid-template-columns: 1fr auto auto auto;
             gap: 15px;
             padding: 10px;
             border-bottom: 1px solid #eee;
             align-items: center;
+        }
+        .expense-item.editing {
+            background-color: #f8f9fa;
         }
         .expense-list {
             margin-top: 15px;
@@ -113,6 +116,27 @@
         .remaining-negative {
             color: #dc3545;
             font-weight: bold;
+        }
+        .edit-button {
+            background: #ffc107;
+        }
+        .save-button {
+            background: #28a745;
+        }
+        .cancel-button {
+            background: #dc3545;
+        }
+        .button-group {
+            display: flex;
+            gap: 5px;
+        }
+        .edit-form {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .edit-form input {
+            margin: 0;
         }
     </style>
 </head>
@@ -193,6 +217,8 @@
             expenses: []
         };
 
+        let editingIndex = -1;
+
         function loadSavedData() {
             const saved = localStorage.getItem('financeData');
             if (saved) {
@@ -237,19 +263,63 @@
             saveData();
         }
 
+        function editExpense(index) {
+            editingIndex = index;
+            updateExpenseList();
+        }
+
+        function saveEdit(index) {
+            const newName = document.getElementById(`edit-name-${index}`).value.trim();
+            const newAmount = formatAmount(document.getElementById(`edit-amount-${index}`).value);
+
+            if (newName && newAmount > 0) {
+                financeData.expenses[index] = { name: newName, amount: newAmount };
+                editingIndex = -1;
+                saveData();
+            }
+        }
+
+        function cancelEdit() {
+            editingIndex = -1;
+            updateExpenseList();
+        }
+
+        function updateExpenseList() {
+            const expenseList = document.getElementById('expense-list');
+            expenseList.innerHTML = financeData.expenses.map((expense, index) => {
+                if (index === editingIndex) {
+                    return `
+                        <div class="expense-item editing">
+                            <div class="edit-form">
+                                <input type="text" id="edit-name-${index}" class="expense-name" value="${expense.name}">
+                                <div class="currency-input">
+                                    <input type="text" id="edit-amount-${index}" class="expense-amount" value="${expense.amount}">
+                                </div>
+                            </div>
+                            <div class="button-group">
+                                <button class="save-button" onclick="saveEdit(${index})">Save</button>
+                                <button class="cancel-button" onclick="cancelEdit()">Cancel</button>
+                            </div>
+                        </div>
+                    `;
+                }
+                return `
+                    <div class="expense-item">
+                        <span>${expense.name}</span>
+                        <span class="expense-amount">${formatCurrency(expense.amount)}</span>
+                        <button class="edit-button" onclick="editExpense(${index})">Edit</button>
+                        <button onclick="removeExpense(${index})">Remove</button>
+                    </div>
+                `;
+            }).join('');
+        }
+
         function updateAllDisplays() {
             document.getElementById('monthly-income').value = financeData.monthlyIncome || '';
             document.getElementById('isa-savings').value = financeData.isaSavings || '';
             document.getElementById('emergency-fund').value = financeData.emergencyFund || '';
 
-            const expenseList = document.getElementById('expense-list');
-            expenseList.innerHTML = financeData.expenses.map((expense, index) => `
-                <div class="expense-item">
-                    <span>${expense.name}</span>
-                    <span class="expense-amount">${formatCurrency(expense.amount)}</span>
-                    <button onclick="removeExpense(${index})">Remove</button>
-                </div>
-            `).join('');
+            updateExpenseList();
 
             const totalExpenses = financeData.expenses.reduce((sum, expense) => sum + expense.amount, 0);
             const totalSavings = financeData.isaSavings + financeData.emergencyFund;
@@ -264,6 +334,7 @@
             remainingElement.className = remaining >= 0 ? 'remaining-positive' : 'remaining-negative';
         }
 
+        // Event Listeners
         document.getElementById('monthly-income').addEventListener('input', (e) => {
             financeData.monthlyIncome = formatAmount(e.target.value);
             saveData();
