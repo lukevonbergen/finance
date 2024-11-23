@@ -112,9 +112,30 @@
             margin-bottom: 5px;
             color: #666;
         }
-        .amount-input {
-            text-align: right;
-        }
+        /* Add or update these styles in the <style> section */
+.amount-input {
+    text-align: left !important; /* Force left alignment */
+    direction: ltr; /* Ensure left-to-right text direction */
+    padding-right: 8px; /* Add some padding on the right */
+}
+
+/* Optional: Add this if you want to keep the £ symbol on the left */
+.currency-input {
+    position: relative;
+}
+
+.currency-input::before {
+    content: '£';
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #666;
+}
+
+.currency-input input {
+    padding-left: 24px; /* Make room for the £ symbol */
+}
     </style>
 </head>
 <body>
