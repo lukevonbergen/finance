@@ -39,7 +39,10 @@
             margin: 0;
         }
         .expense-name { flex: 2; }
-        .expense-amount { flex: 1; }
+        .expense-amount {
+    text-align: right;
+    min-width: 100px;
+}
         button {
             background: #4285f4;
             color: white;
@@ -52,12 +55,13 @@
             background: #3367d6;
         }
         .expense-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px;
-            border-bottom: 1px solid #eee;
-            align-items: center;
-        }
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 15px;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    align-items: center;
+}
         .expense-list {
             margin-top: 15px;
         }
@@ -104,35 +108,60 @@
             font-size: 1.2em;
             color: #333;
         }
+
+        .currency-input {
+    position: relative;
+}
+        .currency-input::before {
+    content: '£';
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #666;
+    z-index: 1;
+}
+
+.currency-input input {
+    padding-left: 24px;
+}
+
+.input-label {
+    display: block;
+    margin-bottom: 5px;
+    color: #666;
+    font-weight: 500;
+}
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Finance Dashboard</h1>
         
-        <!-- Income Section -->
-        <div class="card">
-            <h2 class="section-heading">Monthly Income</h2>
-            <input type="text" id="monthly-income" placeholder="Enter your monthly income">
-        </div>
+        <!-- Monthly Income -->
+<div class="card">
+    <h2 class="section-heading">Monthly Income</h2>
+    <div class="currency-input">
+        <input type="text" id="monthly-income" placeholder="Enter your monthly income">
+    </div>
+</div>
 
-        <!-- Savings Section -->
-        <div class="card">
-            <h2 class="section-heading">Monthly Savings</h2>
-            <input type="text" id="isa-savings" placeholder="ISA contribution">
-            <input type="text" id="emergency-fund" placeholder="Emergency fund contribution">
+<!-- Savings Section -->
+<div class="card">
+    <h2 class="section-heading">Monthly Savings</h2>
+    <div class="input-group">
+        <label class="input-label">ISA Contribution</label>
+        <div class="currency-input">
+            <input type="text" id="isa-savings" placeholder="Monthly ISA savings">
         </div>
-
-        <!-- Expenses Section -->
-        <div class="card">
-            <h2 class="section-heading">Monthly Expenses</h2>
-            <div class="expense-form">
-                <input type="text" id="expense-name" class="expense-name" placeholder="Expense name">
-                <input type="text" id="expense-amount" class="expense-amount" placeholder="Amount">
-                <button onclick="addExpense()">Add</button>
-            </div>
-            <div id="expense-list" class="expense-list"></div>
+    </div>
+    <div class="input-group">
+        <label class="input-label">Emergency Fund Contribution</label>
+        <div class="currency-input">
+            <input type="text" id="emergency-fund" placeholder="Monthly emergency fund savings">
         </div>
+    </div>
+</div>
 
         <!-- Summary Section -->
         <div class="card">
@@ -234,13 +263,14 @@
 
             // Update expense list
             const expenseList = document.getElementById('expense-list');
-            expenseList.innerHTML = financeData.expenses.map((expense, index) => `
-                <div class="expense-item">
-                    <span>${expense.name}</span>
-                    <span>${formatCurrency(expense.amount)}</span>
-                    <button onclick="removeExpense(${index})">Remove</button>
-                </div>
-            `).join('');
+            <!-- Update expense list template in JavaScript -->
+expenseList.innerHTML = financeData.expenses.map((expense, index) => `
+    <div class="expense-item">
+        <span>${expense.name}</span>
+        <span class="expense-amount">${formatCurrency(expense.amount)}</span>
+        <button onclick="removeExpense(${index})">Remove</button>
+    </div>
+`).join('');
 
             // Calculate totals
             const totalExpenses = financeData.expenses.reduce((sum, expense) => sum + expense.amount, 0);
