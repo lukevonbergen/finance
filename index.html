@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Finance Dashboard</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -13,7 +12,7 @@
             background-color: #f0f2f5;
         }
         .container {
-            max-width: 1200px;
+            max-width: 800px;
             margin: 0 auto;
         }
         .card {
@@ -23,211 +22,177 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             margin-bottom: 20px;
         }
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-        }
         input {
-            padding: 8px 12px;
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
             border: 1px solid #ddd;
             border-radius: 4px;
-            font-size: 14px;
-            width: 100%;
             box-sizing: border-box;
         }
         .expense-form {
             display: flex;
             gap: 10px;
-            margin-bottom: 20px;
-            align-items: center;
+            margin-bottom: 15px;
         }
-        .expense-input {
-            padding: 8px 12px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 14px;
+        .expense-form input {
+            margin: 0;
         }
-        .expense-name {
-            flex-grow: 2;
-        }
-        .expense-amount {
-            width: 120px;
-        }
+        .expense-name { flex: 2; }
+        .expense-amount { flex: 1; }
         button {
-            padding: 8px 16px;
             background: #4285f4;
             color: white;
             border: none;
+            padding: 8px 16px;
             border-radius: 4px;
             cursor: pointer;
         }
         button:hover {
             background: #3367d6;
         }
-        .expense-list {
-            border-top: 1px solid #eee;
-        }
         .expense-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 0;
+            display: grid;
+            grid-template-columns: 1fr auto auto;
+            gap: 15px;
+            padding: 10px;
             border-bottom: 1px solid #eee;
+            align-items: center;
         }
-        .expense-details {
-            display: flex;
-            justify-content: space-between;
-            flex-grow: 1;
-            margin-right: 20px;
+        .expense-list {
+            margin-top: 15px;
         }
-        .remove-button {
-            padding: 4px 12px;
-            font-size: 12px;
-        }
-        .chart-container {
-            height: 300px;
-            margin-top: 20px;
+        .summary {
+            font-size: 1.1em;
+            margin-top: 15px;
         }
         .summary-item {
             display: flex;
             justify-content: space-between;
-            padding: 10px 0;
+            margin: 5px 0;
+            padding: 8px 0;
             border-bottom: 1px solid #eee;
         }
-        .health-indicator {
-            padding: 15px;
-            border-radius: 4px;
-            margin-top: 10px;
-        }
-        .health-good { background-color: #d4edda; color: #155724; }
-        .health-warning { background-color: #fff3cd; color: #856404; }
-        .health-danger { background-color: #f8d7da; color: #721c24; }
         .section-heading {
             margin: 0 0 15px 0;
             font-size: 1.2em;
+            color: #333;
+        }
+        .currency-input {
+            position: relative;
+        }
+        .currency-input::before {
+            content: '£';
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+            z-index: 1;
+        }
+        .currency-input input {
+            padding-left: 24px;
         }
         .input-label {
             display: block;
             margin-bottom: 5px;
             color: #666;
+            font-weight: 500;
         }
-        .amount-input {
+        .input-group {
+            margin-bottom: 15px;
+        }
+        .expense-amount {
             text-align: right;
+            min-width: 100px;
         }
-        /* Add or update these styles in the <style> section */
-.amount-input {
-    text-align: left !important; /* Force left alignment */
-    direction: ltr; /* Ensure left-to-right text direction */
-    padding-right: 8px; /* Add some padding on the right */
-}
-/* Optional: Add this if you want to keep the £ symbol on the left */
-.currency-input {
-    position: relative;
-}
-.currency-input::before {
-    content: '£';
-    position: absolute;
-    left: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #666;
-}
-.currency-input input {
-    padding-left: 24px; /* Make room for the £ symbol */
-}
+        .remaining-positive {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .remaining-negative {
+            color: #dc3545;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Finance Dashboard</h1>
-
-        <div class="grid">
-            <!-- Monthly Income -->
-            <div class="card">
-                <h2 class="section-heading">Monthly Income</h2>
-                <label class="input-label">Enter your take-home pay</label>
-                <input type="number" id="monthly-income" class="amount-input" placeholder="Enter amount">
-            </div>
-
-            <!-- Savings -->
-            <div class="card">
-                <h2 class="section-heading">Monthly Savings</h2>
-                <div style="margin-bottom: 15px;">
-                    <label class="input-label">ISA Contribution</label>
-                    <input type="number" id="isa-amount" class="amount-input" placeholder="ISA amount">
-                </div>
-                <div>
-                    <label class="input-label">Emergency Fund</label>
-                    <input type="number" id="emergency-amount" class="amount-input" placeholder="Emergency fund amount">
+        
+        <!-- Income Section -->
+        <div class="card">
+            <h2 class="section-heading">Monthly Income</h2>
+            <div class="input-group">
+                <label class="input-label">Take Home Pay</label>
+                <div class="currency-input">
+                    <input type="text" id="monthly-income" placeholder="Enter your monthly income">
                 </div>
             </div>
         </div>
 
-        <!-- Expenses -->
+        <!-- Savings Section -->
+        <div class="card">
+            <h2 class="section-heading">Monthly Savings</h2>
+            <div class="input-group">
+                <label class="input-label">ISA Contribution</label>
+                <div class="currency-input">
+                    <input type="text" id="isa-savings" placeholder="Monthly ISA savings">
+                </div>
+            </div>
+            <div class="input-group">
+                <label class="input-label">Emergency Fund Contribution</label>
+                <div class="currency-input">
+                    <input type="text" id="emergency-fund" placeholder="Monthly emergency fund savings">
+                </div>
+            </div>
+        </div>
+
+        <!-- Expenses Section -->
         <div class="card">
             <h2 class="section-heading">Monthly Expenses</h2>
             <div class="expense-form">
-                <input type="text" class="expense-input expense-name" id="expense-name" placeholder="Expense name">
-                <input type="number" class="expense-input expense-amount" id="expense-amount" placeholder="Amount">
+                <input type="text" id="expense-name" class="expense-name" placeholder="Expense name">
+                <div class="currency-input">
+                    <input type="text" id="expense-amount" class="expense-amount" placeholder="Amount">
+                </div>
                 <button onclick="addExpense()">Add</button>
             </div>
-            <div id="expenses-list" class="expense-list">
-                <!-- Expenses will be listed here -->
-            </div>
+            <div id="expense-list" class="expense-list"></div>
         </div>
 
-        <div class="grid">
-            <!-- Summary -->
-            <div class="card">
-                <h2 class="section-heading">Financial Summary</h2>
+        <!-- Summary Section -->
+        <div class="card">
+            <h2 class="section-heading">Summary</h2>
+            <div class="summary">
                 <div class="summary-item">
                     <span>Total Income:</span>
                     <span id="total-income">£0.00</span>
+                </div>
+                <div class="summary-item">
+                    <span>Total Savings:</span>
+                    <span id="total-savings">£0.00</span>
                 </div>
                 <div class="summary-item">
                     <span>Total Expenses:</span>
                     <span id="total-expenses">£0.00</span>
                 </div>
                 <div class="summary-item">
-                    <span>ISA Savings:</span>
-                    <span id="total-isa">£0.00</span>
-                </div>
-                <div class="summary-item">
-                    <span>Emergency Fund:</span>
-                    <span id="total-emergency">£0.00</span>
-                </div>
-                <div class="summary-item">
                     <span>Remaining:</span>
                     <span id="remaining">£0.00</span>
                 </div>
             </div>
-
-            <!-- Chart -->
-            <div class="card">
-                <h2 class="section-heading">Spending Breakdown</h2>
-                <div class="chart-container">
-                    <canvas id="expense-chart"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <!-- Financial Health -->
-        <div class="card">
-            <h2 class="section-heading">Financial Health</h2>
-            <div id="health-indicator" class="health-indicator"></div>
         </div>
     </div>
 
     <script>
         let financeData = {
             monthlyIncome: 0,
-            expenses: [],
             isaSavings: 0,
-            emergencyFund: 0
+            emergencyFund: 0,
+            expenses: []
         };
 
-        // Load saved data when page loads
         function loadSavedData() {
             const saved = localStorage.getItem('financeData');
             if (saved) {
@@ -236,160 +201,90 @@
             }
         }
 
-        // Save data
         function saveData() {
             localStorage.setItem('financeData', JSON.stringify(financeData));
+            updateAllDisplays();
         }
 
-        function updateAllDisplays() {
-            document.getElementById('monthly-income').value = financeData.monthlyIncome || '';
-            document.getElementById('isa-amount').value = financeData.isaSavings || '';
-            document.getElementById('emergency-amount').value = financeData.emergencyFund || '';
-            updateExpenseList();
-            updateSummary();
-            updateChart();
-            updateHealthIndicator();
+        function formatCurrency(amount) {
+            return '£' + parseFloat(amount).toFixed(2);
+        }
+
+        function formatAmount(value) {
+            value = value.replace(/[^\d.]/g, '');
+            const parts = value.split('.');
+            if (parts.length > 2) value = parts[0] + '.' + parts.slice(1).join('');
+            if (parts[1]?.length > 2) {
+                value = parseFloat(value).toFixed(2);
+            }
+            return parseFloat(value) || 0;
         }
 
         function addExpense() {
-            const nameInput = document.getElementById('expense-name');
-            const amountInput = document.getElementById('expense-amount');
-            const name = nameInput.value.trim();
-            const amount = parseFloat(amountInput.value);
+            const name = document.getElementById('expense-name').value.trim();
+            const amount = formatAmount(document.getElementById('expense-amount').value);
 
             if (name && amount > 0) {
                 financeData.expenses.push({ name, amount });
-                nameInput.value = '';
-                amountInput.value = '';
+                document.getElementById('expense-name').value = '';
+                document.getElementById('expense-amount').value = '';
                 saveData();
-                updateAllDisplays();
             }
         }
 
         function removeExpense(index) {
             financeData.expenses.splice(index, 1);
             saveData();
-            updateAllDisplays();
         }
 
-        function updateExpenseList() {
-            const list = document.getElementById('expenses-list');
-            list.innerHTML = financeData.expenses.map((expense, index) => `
+        function updateAllDisplays() {
+            document.getElementById('monthly-income').value = financeData.monthlyIncome || '';
+            document.getElementById('isa-savings').value = financeData.isaSavings || '';
+            document.getElementById('emergency-fund').value = financeData.emergencyFund || '';
+
+            const expenseList = document.getElementById('expense-list');
+            expenseList.innerHTML = financeData.expenses.map((expense, index) => `
                 <div class="expense-item">
-                    <div class="expense-details">
-                        <span>${expense.name}</span>
-                        <span>£${expense.amount.toFixed(2)}</span>
-                    </div>
-                    <button class="remove-button" onclick="removeExpense(${index})">Remove</button>
+                    <span>${expense.name}</span>
+                    <span class="expense-amount">${formatCurrency(expense.amount)}</span>
+                    <button onclick="removeExpense(${index})">Remove</button>
                 </div>
             `).join('');
-        }
 
-        function updateSummary() {
-            const totalExpenses = financeData.expenses.reduce((sum, expense) => sum + expense.amount, 0);
-            const remaining = financeData.monthlyIncome - totalExpenses - financeData.isaSavings - financeData.emergencyFund;
-
-            document.getElementById('total-income').textContent = `£${financeData.monthlyIncome.toFixed(2)}`;
-            document.getElementById('total-expenses').textContent = `£${totalExpenses.toFixed(2)}`;
-            document.getElementById('total-isa').textContent = `£${financeData.isaSavings.toFixed(2)}`;
-            document.getElementById('total-emergency').textContent = `£${financeData.emergencyFund.toFixed(2)}`;
-            document.getElementById('remaining').textContent = `£${remaining.toFixed(2)}`;
-        }
-
-        function updateChart() {
-            const ctx = document.getElementById('expense-chart').getContext('2d');
-
-            const data = [
-                ...financeData.expenses.map(e => ({ name: e.name, amount: e.amount })),
-                { name: 'ISA', amount: financeData.isaSavings },
-                { name: 'Emergency Fund', amount: financeData.emergencyFund }
-            ].filter(item => item.amount > 0);
-
-            if (window.myChart) {
-                window.myChart.destroy();
-            }
-
-            if (data.length > 0) {
-                window.myChart = new Chart(ctx, {
-                    type: 'pie',
-                    data: {
-                        labels: data.map(item => item.name),
-                        datasets: [{
-                            data: data.map(item => item.amount),
-                            backgroundColor: [
-                                '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
-                                '#FF9F40', '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'
-                            ]
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false
-                    }
-                });
-            }
-        }
-
-        function updateHealthIndicator() {
-            const income = financeData.monthlyIncome;
             const totalExpenses = financeData.expenses.reduce((sum, expense) => sum + expense.amount, 0);
             const totalSavings = financeData.isaSavings + financeData.emergencyFund;
+            const remaining = financeData.monthlyIncome - totalExpenses - totalSavings;
 
-            if (income === 0) {
-                document.getElementById('health-indicator').className = 'health-indicator health-warning';
-                document.getElementById('health-indicator').textContent = 'Please enter your monthly income to see financial health status.';
-                return;
-            }
-
-            const savingsRate = (totalSavings / income) * 100;
-            const expenseRate = (totalExpenses / income) * 100;
-
-            const indicator = document.getElementById('health-indicator');
-            let message;
-            let className;
-
-            if (savingsRate >= 20 && expenseRate < 60) {
-                message = `Excellent financial health! You're saving ${savingsRate.toFixed(1)}% of your income.`;
-                className = 'health-good';
-            } else if (savingsRate >= 10 && expenseRate < 80) {
-                message = `Good financial health. Consider increasing your savings if possible.`;
-                className = 'health-warning';
-            } else {
-                message = `Consider reviewing your expenses and increasing your savings rate.`;
-                className = 'health-danger';
-            }
-
-            indicator.className = `health-indicator ${className}`;
-            indicator.textContent = message;
+            document.getElementById('total-income').textContent = formatCurrency(financeData.monthlyIncome);
+            document.getElementById('total-savings').textContent = formatCurrency(totalSavings);
+            document.getElementById('total-expenses').textContent = formatCurrency(totalExpenses);
+            
+            const remainingElement = document.getElementById('remaining');
+            remainingElement.textContent = formatCurrency(remaining);
+            remainingElement.className = remaining >= 0 ? 'remaining-positive' : 'remaining-negative';
         }
 
-        // Event listeners for real-time updates
-        document.getElementById('monthly-income').addEventListener('input', function(e) {
-            financeData.monthlyIncome = parseFloat(e.target.value) || 0;
+        document.getElementById('monthly-income').addEventListener('input', (e) => {
+            financeData.monthlyIncome = formatAmount(e.target.value);
             saveData();
-            updateAllDisplays();
         });
 
-        document.getElementById('isa-amount').addEventListener('input', function(e) {
-            financeData.isaSavings = parseFloat(e.target.value) || 0;
+        document.getElementById('isa-savings').addEventListener('input', (e) => {
+            financeData.isaSavings = formatAmount(e.target.value);
             saveData();
-            updateAllDisplays();
         });
 
-        document.getElementById('emergency-amount').addEventListener('input', function(e) {
-            financeData.emergencyFund = parseFloat(e.target.value) || 0;
+        document.getElementById('emergency-fund').addEventListener('input', (e) => {
+            financeData.emergencyFund = formatAmount(e.target.value);
             saveData();
-            updateAllDisplays();
         });
 
-        // Enter key handler for expenses
-        document.getElementById('expense-amount').addEventListener('keypress', function(e) {
+        document.getElementById('expense-amount').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 addExpense();
             }
         });
 
-        // Initialize dashboard
         loadSavedData();
     </script>
 </body>
