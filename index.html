@@ -3,334 +3,825 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Finance Dashboard</title>
+    <title>Ultimate Finance Dashboard</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
+        :root {
+            --primary: #007bff;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --light: #f8f9fa;
+            --dark: #343a40;
+        }
+
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 20px;
             background-color: #f0f2f5;
+            color: var(--dark);
         }
+
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
         }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+        }
+
         .card {
             background: white;
             padding: 20px;
-            border-radius: 8px;
+            border-radius: 12px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             margin-bottom: 20px;
+            transition: transform 0.2s;
         }
-        .summary-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 20px;
+
+        .card:hover {
+            transform: translateY(-2px);
         }
-        .summary-card {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .expense-form {
-            display: grid;
-            grid-template-columns: 1fr 1fr auto;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        .expense-list {
-            margin-bottom: 20px;
-        }
-        .expense-item {
-            display: grid;
-            grid-template-columns: 1fr 1fr auto;
-            padding: 10px;
-            border-bottom: 1px solid #eee;
-        }
-        .expense-item button {
-            background: #ff4444;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .charts {
+
+        .grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 20px;
         }
-        input, select, button {
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        button {
-            background: #007bff;
-            color: white;
+
+        .btn {
+            padding: 8px 16px;
             border: none;
+            border-radius: 6px;
             cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
         }
-        button:hover {
-            background: #0056b3;
+
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-warning { background: var(--warning); color: black; }
+        .btn-danger { background: var(--danger); color: white; }
+
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
         }
-        .feedback {
-            padding: 15px;
-            border-radius: 4px;
-            margin-top: 20px;
-        }
-        .warning { background-color: #fff3cd; color: #856404; }
-        .success { background-color: #d4edda; color: #155724; }
-        .danger { background-color: #f8d7da; color: #721c24; }
-        .actions {
+
+        .tabs {
             display: flex;
             gap: 10px;
             margin-bottom: 20px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
         }
-        .export-btn {
-            background: #28a745;
+
+        .tab {
+            padding: 10px 20px;
+            background: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
         }
-        .clear-btn {
-            background: #dc3545;
+
+        .tab.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+        }
+
+        .progress-container {
+            margin-top: 10px;
+        }
+
+        .progress-bar {
+            height: 10px;
+            background: #eee;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--success);
+            transition: width 0.3s ease;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: 20px 0;
+        }
+
+        .savings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .savings-card {
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .summary-card {
+            background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .summary-card h3 {
+            margin: 0 0 15px 0;
+            color: var(--primary);
+        }
+
+        .summary-stat {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-weight: 500;
+            color: var(--dark);
+        }
+
+        .stat-value {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .trend-indicator {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.9em;
+            margin-left: 8px;
+        }
+
+        .trend-up {
+            background-color: rgba(40, 167, 69, 0.1);
+            color: var(--success);
+        }
+
+        .trend-down {
+            background-color: rgba(220, 53, 69, 0.1);
+            color: var(--danger);
+        }
+
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            background: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: white;
+            min-width: 160px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-radius: 6px;
+            z-index: 1;
+        }
+
+        .dropdown-content a {
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            color: var(--dark);
+        }
+
+        .dropdown-content a:hover {
+            background-color: #f8f9fa;
+        }
+
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .tabs {
+                flex-wrap: wrap;
+            }
+            
+            .tab {
+                flex: 1 1 auto;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- Main Dashboard Structure -->
     <div class="container">
-        <h1>Finance Dashboard</h1>
-        
-        <div class="actions">
-            <button onclick="exportData()" class="export-btn">Export Data</button>
-            <button onclick="clearData()" class="clear-btn">Clear All Data</button>
-        </div>
-
-        <!-- Income Input -->
-        <div class="card">
-            <h2>Monthly Income</h2>
-            <input type="number" id="income-input" placeholder="Enter monthly income" onchange="updateIncome(this.value)">
-        </div>
-
-        <!-- Summary Cards -->
-        <div class="summary-cards">
-            <div class="summary-card">
-                <h3>Total Income</h3>
-                <p id="total-income">£0</p>
-            </div>
-            <div class="summary-card">
-                <h3>Total Expenses</h3>
-                <p id="total-expenses">£0</p>
-            </div>
-            <div class="summary-card">
-                <h3>Remaining</h3>
-                <p id="remaining">£0</p>
+        <!-- Dashboard Header -->
+        <div class="dashboard-header">
+            <h1>Ultimate Finance Dashboard</h1>
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="exportData()">Export Data</button>
+                <button class="btn btn-success" onclick="importData()">Import Data</button>
+                <button class="btn btn-warning" onclick="showSettings()">Settings</button>
             </div>
         </div>
 
-        <!-- Expense Input -->
-        <div class="card">
-            <h2>Add Expense</h2>
-            <div class="expense-form">
-                <input type="text" id="expense-name" placeholder="Expense name">
-                <input type="number" id="expense-amount" placeholder="Amount">
-                <button onclick="addExpense()">Add Expense</button>
-            </div>
-            
-            <!-- Expense List -->
-            <div class="expense-list" id="expense-list">
-                <!-- Expenses will be added here -->
-            </div>
+        <!-- View Selection Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="switchView('monthly')">Monthly View</button>
+            <button class="tab" onclick="switchView('yearly')">Yearly Summary</button>
+            <button class="tab" onclick="switchView('savings')">Savings Tracker</button>
+            <button class="tab" onclick="switchView('analytics')">Analytics</button>
         </div>
 
-        <!-- Charts -->
-        <div class="charts">
-            <div class="card">
-                <h2>Expense Breakdown</h2>
-                <canvas id="expense-chart"></canvas>
-            </div>
-            <div class="card">
-                <h2>Financial Health</h2>
-                <div id="feedback" class="feedback"></div>
-            </div>
+        <!-- Main Content Area -->
+        <div id="main-content">
+            <!-- Content will be dynamically loaded here -->
         </div>
     </div>
 
-    <script>
-        let expenses = [];
-        let monthlyIncome = 0;
-        let chart = null;
+    <!-- Modals -->
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <h2>Dashboard Settings</h2>
+            <!-- Settings content -->
+        </div>
+    </div>
 
-        // Load saved data when page loads
-        function loadSavedData() {
-            const savedIncome = localStorage.getItem('monthlyIncome');
-            const savedExpenses = localStorage.getItem('expenses');
-            
-            if (savedIncome) {
-                monthlyIncome = parseFloat(savedIncome);
-                document.getElementById('income-input').value = monthlyIncome;
-            }
-            
-            if (savedExpenses) {
-                expenses = JSON.parse(savedExpenses);
-                updateExpenseList();
-            }
-            
-            updateDashboard();
-        }
+    <!-- Notification -->
+    <div id="notification" class="notification"></div>
 
-        // Save data to localStorage
-        function saveData() {
-            localStorage.setItem('monthlyIncome', monthlyIncome.toString());
-            localStorage.setItem('expenses', JSON.stringify(expenses));
-        }
+<script>
+// Core Data Structures
+const DEFAULT_SAVINGS_CATEGORIES = {
+    emergency: { name: 'Emergency Fund', target: 10000, current: 0, color: '#28a745' },
+    isa: { name: 'ISA', target: 20000, current: 0, color: '#007bff' },
+    property: { name: 'Property Deposit', target: 50000, current: 0, color: '#6f42c1' },
+    investment: { name: 'Investment Account', target: 15000, current: 0, color: '#fd7e14' },
+    general: { name: 'General Savings', target: 5000, current: 0, color: '#20c997' },
+    holiday: { name: 'Holiday Fund', target: 3000, current: 0, color: '#e83e8c' }
+};
 
-        function formatCurrency(amount) {
-            return '£' + parseFloat(amount).toLocaleString('en-UK', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            });
-        }
+let dashboardData = {
+    currentView: 'monthly',
+    currentMonth: new Date(),
+    monthlyData: {},
+    savings: DEFAULT_SAVINGS_CATEGORIES,
+    settings: {
+        currency: '£',
+        monthlyIncomeTarget: 0,
+        monthlySavingsTarget: 0,
+        yearlyGoals: {}
+    }
+};
 
-        function updateIncome(value) {
-            monthlyIncome = parseFloat(value) || 0;
-            saveData();
-            updateDashboard();
-        }
+// Initialize Dashboard
+function initializeDashboard() {
+    loadSavedData();
+    createMonthlyData();
+    setupEventListeners();
+    switchView('monthly');
+    updateAllDisplays();
+}
 
-        function updateDashboard() {
-            const totalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0);
-            const remaining = monthlyIncome - totalExpenses;
+// Data Management
+function loadSavedData() {
+    const saved = localStorage.getItem('ultimateDashboardData');
+    if (saved) {
+        dashboardData = { ...dashboardData, ...JSON.parse(saved) };
+    }
+}
 
-            document.getElementById('total-income').textContent = formatCurrency(monthlyIncome);
-            document.getElementById('total-expenses').textContent = formatCurrency(totalExpenses);
-            document.getElementById('remaining').textContent = formatCurrency(remaining);
+function saveData() {
+    localStorage.setItem('ultimateDashboardData', JSON.stringify(dashboardData));
+    showNotification('Data saved successfully', 'success');
+}
 
-            updateChart();
-            updateFeedback(monthlyIncome, totalExpenses, remaining);
-        }
-
-        function addExpense() {
-            const nameInput = document.getElementById('expense-name');
-            const amountInput = document.getElementById('expense-amount');
-            
-            const name = nameInput.value.trim();
-            const amount = parseFloat(amountInput.value);
-
-            if (name && amount > 0) {
-                expenses.push({ name, amount });
-                nameInput.value = '';
-                amountInput.value = '';
-                saveData();
-                updateExpenseList();
-                updateDashboard();
-            }
-        }
-
-        function removeExpense(index) {
-            expenses.splice(index, 1);
-            saveData();
-            updateExpenseList();
-            updateDashboard();
-        }
-
-        function updateExpenseList() {
-            const list = document.getElementById('expense-list');
-            list.innerHTML = '';
-            
-            expenses.forEach((expense, index) => {
-                const div = document.createElement('div');
-                div.className = 'expense-item';
-                div.innerHTML = `
-                    <span>${expense.name}</span>
-                    <span>${formatCurrency(expense.amount)}</span>
-                    <button onclick="removeExpense(${index})">Remove</button>
-                `;
-                list.appendChild(div);
-            });
-        }
-
-        function updateChart() {
-            const ctx = document.getElementById('expense-chart').getContext('2d');
-            
-            if (chart) {
-                chart.destroy();
-            }
-
-            chart = new Chart(ctx, {
-                type: 'pie',
-                data: {
-                    labels: expenses.map(e => e.name),
-                    datasets: [{
-                        data: expenses.map(e => e.amount),
-                        backgroundColor: [
-                            '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
-                            '#FF9F40', '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'
-                        ]
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            position: 'right'
-                        }
-                    }
-                }
-            });
-        }
-
-        function updateFeedback(income, expenses, remaining) {
-            const feedback = document.getElementById('feedback');
-            const expenseRatio = income > 0 ? (expenses / income) * 100 : 0;
-
-            if (income === 0) {
-                feedback.className = 'feedback warning';
-                feedback.textContent = 'Please enter your monthly income to get started.';
-            } else if (expenseRatio > 90) {
-                feedback.className = 'feedback danger';
-                feedback.textContent = `Warning: Your expenses are ${expenseRatio.toFixed(1)}% of your income. Consider reducing expenses immediately.`;
-            } else if (expenseRatio > 70) {
-                feedback.className = 'feedback warning';
-                feedback.textContent = `Your expenses are ${expenseRatio.toFixed(1)}% of your income. Look for areas to save.`;
-            } else {
-                feedback.className = 'feedback success';
-                feedback.textContent = `Great job! Your expenses are ${expenseRatio.toFixed(1)}% of your income, leaving ${formatCurrency(remaining)} for savings.`;
-            }
-        }
-
-        function exportData() {
-            const data = {
-                monthlyIncome,
-                expenses,
-                date: new Date().toISOString()
+function createMonthlyData() {
+    // Create data structure for the last 24 months
+    for (let i = 0; i < 24; i++) {
+        const date = new Date();
+        date.setMonth(date.getMonth() - i);
+        const monthKey = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+        
+        if (!dashboardData.monthlyData[monthKey]) {
+            dashboardData.monthlyData[monthKey] = {
+                income: 0,
+                expenses: [],
+                savings: Object.keys(DEFAULT_SAVINGS_CATEGORIES).reduce((acc, key) => {
+                    acc[key] = 0;
+                    return acc;
+                }, {}),
+                notes: ''
             };
-            
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'finance-data.json';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
         }
+    }
+}
 
-        function clearData() {
-            if (confirm('Are you sure you want to clear all data? This cannot be undone.')) {
-                localStorage.clear();
-                expenses = [];
-                monthlyIncome = 0;
-                document.getElementById('income-input').value = '';
-                updateExpenseList();
-                updateDashboard();
+// View Management
+function switchView(view) {
+    dashboardData.currentView = view;
+    const tabs = document.querySelectorAll('.tab');
+    tabs.forEach(tab => tab.classList.remove('active'));
+    document.querySelector(`[onclick="switchView('${view}')"]`).classList.add('active');
+
+    const mainContent = document.getElementById('main-content');
+    mainContent.innerHTML = ''; // Clear current content
+
+    switch (view) {
+        case 'monthly':
+            renderMonthlyView();
+            break;
+        case 'yearly':
+            renderYearlyView();
+            break;
+        case 'savings':
+            renderSavingsView();
+            break;
+        case 'analytics':
+            renderAnalyticsView();
+            break;
+    }
+}
+
+// Monthly View Renderer
+function renderMonthlyView() {
+    const currentMonthKey = getCurrentMonthKey();
+    const monthData = dashboardData.monthlyData[currentMonthKey];
+    
+    const content = `
+        <div class="grid">
+            <!-- Income Section -->
+            <div class="card">
+                <h2>Monthly Income</h2>
+                <div class="input-group">
+                    <input type="number" 
+                           id="monthly-income" 
+                           value="${monthData.income}"
+                           onchange="updateMonthlyIncome(this.value)"
+                           placeholder="Enter monthly income">
+                </div>
+            </div>
+
+            <!-- Expenses Section -->
+            <div class="card">
+                <h2>Expenses</h2>
+                <div class="input-group">
+                    <input type="text" id="expense-name" placeholder="Expense name">
+                    <input type="number" id="expense-amount" placeholder="Amount">
+                    <select id="expense-category">
+                        <option value="essential">Essential</option>
+                        <option value="discretionary">Discretionary</option>
+                        <option value="bills">Bills</option>
+                        <option value="other">Other</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="addExpense()">Add Expense</button>
+                </div>
+                <div id="expenses-list" class="expenses-list">
+                    ${renderExpensesList(monthData.expenses)}
+                </div>
+            </div>
+
+            <!-- Monthly Summary -->
+            <div class="card">
+                <h2>Monthly Summary</h2>
+                <div class="summary-stats">
+                    <div class="summary-stat">
+                        <span class="stat-label">Total Income:</span>
+                        <span class="stat-value">${formatCurrency(monthData.income)}</span>
+                    </div>
+                    <div class="summary-stat">
+                        <span class="stat-label">Total Expenses:</span>
+                        <span class="stat-value">${formatCurrency(calculateTotalExpenses(monthData.expenses))}</span>
+                    </div>
+                    <div class="summary-stat">
+                        <span class="stat-label">Remaining:</span>
+                        <span class="stat-value">${formatCurrency(calculateRemaining(monthData))}</span>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="monthly-expenses-chart"></canvas>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('main-content').innerHTML = content;
+    renderMonthlyCharts(monthData);
+}
+
+// Utility Functions
+function getCurrentMonthKey() {
+    const date = dashboardData.currentMonth;
+    return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+}
+
+function formatCurrency(amount) {
+    return `${dashboardData.settings.currency}${parseFloat(amount).toLocaleString('en-UK', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    })}`;
+}
+
+function calculateTotalExpenses(expenses) {
+    return expenses.reduce((sum, expense) => sum + expense.amount, 0);
+}
+
+function calculateRemaining(monthData) {
+    return monthData.income - calculateTotalExpenses(monthData.expenses);
+}
+
+function showNotification(message, type = 'info') {
+    const notification = document.getElementById('notification');
+    notification.textContent = message;
+    notification.className = `notification ${type}`;
+    notification.style.display = 'block';
+    
+    setTimeout(() => {
+        notification.style.display = 'none';
+    }, 3000);
+}
+
+// Event Listeners
+function setupEventListeners() {
+    // Add keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && e.key === 's') {
+            e.preventDefault();
+            saveData();
+        }
+    });
+
+    // Add window unload warning
+    window.addEventListener('beforeunload', (e) => {
+        saveData();
+    });
+}
+
+// Initialize the dashboard when the page loads
+document.addEventListener('DOMContentLoaded', initializeDashboard);
+</script>
+    <script>
+// Savings View Functions
+function renderSavingsView() {
+    const content = `
+        <div class="savings-grid">
+            ${Object.entries(dashboardData.savings).map(([key, data]) => `
+                <div class="card savings-card">
+                    <h3>${data.name}</h3>
+                    <div class="summary-stat">
+                        <span class="stat-label">Target:</span>
+                        <span class="stat-value">${formatCurrency(data.target)}</span>
+                    </div>
+                    <div class="summary-stat">
+                        <span class="stat-label">Current:</span>
+                        <span class="stat-value">${formatCurrency(data.current)}</span>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${(data.current / data.target * 100)}%; background-color: ${data.color}"></div>
+                        </div>
+                        <p>${((data.current / data.target) * 100).toFixed(1)}% of target</p>
+                    </div>
+                    <div class="input-group">
+                        <input type="number" id="savings-input-${key}" placeholder="Add amount">
+                        <button class="btn btn-primary" onclick="addToSavings('${key}')">Add</button>
+                        <button class="btn btn-warning" onclick="updateSavingsGoal('${key}')">Update Goal</button>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+        <div class="card">
+            <h2>Savings Overview</h2>
+            <div class="chart-container">
+                <canvas id="savings-overview-chart"></canvas>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('main-content').innerHTML = content;
+    renderSavingsCharts();
+}
+
+// Yearly Summary Functions
+function renderYearlyView() {
+    const yearlyData = calculateYearlyData();
+    
+    const content = `
+        <div class="grid">
+            <div class="card">
+                <h2>Yearly Overview</h2>
+                <div class="summary-stat">
+                    <span class="stat-label">Total Income:</span>
+                    <span class="stat-value">${formatCurrency(yearlyData.totalIncome)}</span>
+                </div>
+                <div class="summary-stat">
+                    <span class="stat-label">Total Expenses:</span>
+                    <span class="stat-value">${formatCurrency(yearlyData.totalExpenses)}</span>
+                </div>
+                <div class="summary-stat">
+                    <span class="stat-label">Total Savings:</span>
+                    <span class="stat-value">${formatCurrency(yearlyData.totalSavings)}</span>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>Monthly Trends</h2>
+                <div class="chart-container">
+                    <canvas id="yearly-trends-chart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Expense Categories</h2>
+                <div class="chart-container">
+                    <canvas id="yearly-categories-chart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Monthly Breakdown</h2>
+            <div class="table-container">
+                ${renderYearlyTable(yearlyData)}
+            </div>
+        </div>
+    `;
+
+    document.getElementById('main-content').innerHTML = content;
+    renderYearlyCharts(yearlyData);
+}
+
+function calculateYearlyData() {
+    const currentYear = dashboardData.currentMonth.getFullYear();
+    const yearData = {
+        totalIncome: 0,
+        totalExpenses: 0,
+        totalSavings: 0,
+        monthlyData: {},
+        expenseCategories: {},
+        savingsProgress: {}
+    };
+
+    // Process each month
+    Object.entries(dashboardData.monthlyData).forEach(([monthKey, data]) => {
+        if (monthKey.startsWith(currentYear)) {
+            yearData.totalIncome += data.income;
+            const monthExpenses = calculateTotalExpenses(data.expenses);
+            yearData.totalExpenses += monthExpenses;
+            
+            // Process expense categories
+            data.expenses.forEach(expense => {
+                yearData.expenseCategories[expense.category] = 
+                    (yearData.expenseCategories[expense.category] || 0) + expense.amount;
+            });
+
+            // Process savings
+            Object.entries(data.savings).forEach(([category, amount]) => {
+                yearData.savingsProgress[category] = 
+                    (yearData.savingsProgress[category] || 0) + amount;
+                yearData.totalSavings += amount;
+            });
+
+            // Store monthly summary
+            yearData.monthlyData[monthKey] = {
+                income: data.income,
+                expenses: monthExpenses,
+                savings: Object.values(data.savings).reduce((a, b) => a + b, 0)
+            };
+        }
+    });
+
+    return yearData;
+}
+
+// Analytics Functions
+function renderAnalyticsView() {
+    const analyticsData = calculateAnalytics();
+    
+    const content = `
+        <div class="grid">
+            <div class="card">
+                <h2>Financial Health Score</h2>
+                <div class="chart-container">
+                    <canvas id="health-score-chart"></canvas>
+                </div>
+                ${renderHealthIndicators(analyticsData.healthScores)}
+            </div>
+
+            <div class="card">
+                <h2>Spending Patterns</h2>
+                <div class="chart-container">
+                    <canvas id="spending-patterns-chart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Savings Progress</h2>
+                <div class="chart-container">
+                    <canvas id="savings-progress-chart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Financial Insights</h2>
+                ${renderFinancialInsights(analyticsData)}
+            </div>
+        </div>
+    `;
+
+    document.getElementById('main-content').innerHTML = content;
+    renderAnalyticsCharts(analyticsData);
+}
+
+function calculateAnalytics() {
+    const analytics = {
+        healthScores: calculateHealthScores(),
+        spendingPatterns: analyzeSpendingPatterns(),
+        savingsProgress: analyzeSavingsProgress(),
+        insights: generateInsights()
+    };
+
+    return analytics;
+}
+
+// Chart Rendering Functions
+function renderMonthlyCharts(monthData) {
+    const ctx = document.getElementById('monthly-expenses-chart').getContext('2d');
+    
+    new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: monthData.expenses.map(e => e.name),
+            datasets: [{
+                data: monthData.expenses.map(e => e.amount),
+                backgroundColor: [
+                    '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+                    '#FF9F40', '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'right'
+                },
+                title: {
+                    display: true,
+                    text: 'Monthly Expenses Breakdown'
+                }
             }
         }
+    });
+}
 
-        // Load saved data when page loads
-        loadSavedData();
-    </script>
+// Export/Import Functions
+function exportData() {
+    const dataStr = JSON.stringify(dashboardData, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `finance-dashboard-${getCurrentMonthKey()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    showNotification('Data exported successfully', 'success');
+}
+
+function importData() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'application/json';
+    
+    input.onchange = e => {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+        
+        reader.onload = event => {
+            try {
+                const importedData = JSON.parse(event.target.result);
+                dashboardData = { ...dashboardData, ...importedData };
+                saveData();
+                switchView(dashboardData.currentView);
+                showNotification('Data imported successfully', 'success');
+            } catch (error) {
+                showNotification('Error importing data', 'error');
+            }
+        };
+        
+        reader.readAsText(file);
+    };
+    
+    input.click();
+}
+
+// Initialize charts when the page loads
+document.addEventListener('DOMContentLoaded', () => {
+    // Register Chart.js plugins and defaults here if needed
+    Chart.defaults.font.family = "'Arial', sans-serif";
+    Chart.defaults.responsive = true;
+});
+</script>
 </body>
 </html>
