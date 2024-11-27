@@ -3,360 +3,242 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Finance Dashboard</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f0f2f5;
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        .card {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-        input {
-            width: 100%;
-            padding: 8px;
-            margin: 5px 0;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-        .expense-form {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-        .expense-form input {
-            margin: 0;
-        }
-        .expense-name { flex: 2; }
-        .expense-amount { flex: 1; }
-        button {
-            background: #4285f4;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        button:hover {
-            background: #3367d6;
-        }
-        .expense-item {
-            display: grid;
-            grid-template-columns: 1fr auto auto auto;
-            gap: 15px;
-            padding: 10px;
-            border-bottom: 1px solid #eee;
-            align-items: center;
-        }
-        .expense-item.editing {
-            background-color: #f8f9fa;
-        }
-        .expense-list {
-            margin-top: 15px;
-        }
-        .summary {
-            font-size: 1.1em;
-            margin-top: 15px;
-        }
-        .summary-item {
-            display: flex;
-            justify-content: space-between;
-            margin: 5px 0;
-            padding: 8px 0;
-            border-bottom: 1px solid #eee;
-        }
-        .section-heading {
-            margin: 0 0 15px 0;
-            font-size: 1.2em;
-            color: #333;
-        }
-        .currency-input {
-            position: relative;
-        }
-        .currency-input::before {
-            content: '£';
-            position: absolute;
-            left: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #666;
-            z-index: 1;
-        }
-        .currency-input input {
-            padding-left: 24px;
-        }
-        .input-label {
-            display: block;
-            margin-bottom: 5px;
-            color: #666;
-            font-weight: 500;
-        }
-        .input-group {
-            margin-bottom: 15px;
-        }
-        .expense-amount {
-            text-align: right;
-            min-width: 100px;
-        }
-        .remaining-positive {
-            color: #28a745;
-            font-weight: bold;
-        }
-        .remaining-negative {
-            color: #dc3545;
-            font-weight: bold;
-        }
-        .edit-button {
-            background: #ffc107;
-        }
-        .save-button {
-            background: #28a745;
-        }
-        .cancel-button {
-            background: #dc3545;
-        }
-        .button-group {
-            display: flex;
-            gap: 5px;
-        }
-        .edit-form {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-        .edit-form input {
-            margin: 0;
-        }
-    </style>
+    <title>Money</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
 </head>
-<body>
-    <div class="container">
-        <h1>Finance Dashboard</h1>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold mb-8 text-gray-800">Personal Finance Dashboard</h1>
         
         <!-- Income Section -->
-        <div class="card">
-            <h2 class="section-heading">Monthly Income</h2>
-            <div class="input-group">
-                <label class="input-label">Take Home Pay</label>
-                <div class="currency-input">
-                    <input type="text" id="monthly-income" placeholder="Enter your monthly income">
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4 text-gray-700">Monthly Income</h2>
+            <div class="flex flex-wrap gap-4">
+                <div class="w-full md:w-auto">
+                    <label class="block text-sm font-medium text-gray-600">Take Home Pay</label>
+                    <div class="relative mt-1">
+                        <span class="absolute left-3 top-2">£</span>
+                        <input type="number" id="takeHome" class="pl-6 p-2 border rounded-md w-full md:w-48" step="0.01">
+                    </div>
                 </div>
-            </div>
-        </div>
-
-        <!-- Savings Section -->
-        <div class="card">
-            <h2 class="section-heading">Monthly Savings</h2>
-            <div class="input-group">
-                <label class="input-label">ISA Contribution</label>
-                <div class="currency-input">
-                    <input type="text" id="isa-savings" placeholder="Monthly ISA savings">
+                <div class="w-full md:w-auto">
+                    <label class="block text-sm font-medium text-gray-600">Bank Savings</label>
+                    <div class="relative mt-1">
+                        <span class="absolute left-3 top-2">£</span>
+                        <input type="number" id="emergencyFund" class="pl-6 p-2 border rounded-md w-full md:w-48" step="0.01">
+                    </div>
                 </div>
-            </div>
-            <div class="input-group">
-                <label class="input-label">Emergency Fund Contribution</label>
-                <div class="currency-input">
-                    <input type="text" id="emergency-fund" placeholder="Monthly emergency fund savings">
+                <div class="w-full md:w-auto">
+                    <label class="block text-sm font-medium text-gray-600">ISA Contribution</label>
+                    <div class="relative mt-1">
+                        <span class="absolute left-3 top-2">£</span>
+                        <input type="number" id="isa" class="pl-6 p-2 border rounded-md w-full md:w-48" step="0.01">
+                    </div>
+                </div>
+                <div class="w-full md:w-auto flex items-end">
+                    <button onclick="updateIncome()" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Update Income</button>
                 </div>
             </div>
         </div>
 
         <!-- Expenses Section -->
-        <div class="card">
-            <h2 class="section-heading">Monthly Expenses</h2>
-            <div class="expense-form">
-                <input type="text" id="expense-name" class="expense-name" placeholder="Expense name">
-                <div class="currency-input">
-                    <input type="text" id="expense-amount" class="expense-amount" placeholder="Amount">
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4 text-gray-700">Expenses</h2>
+            <div class="flex flex-wrap gap-4 mb-4">
+                <div class="w-full md:w-auto">
+                    <label class="block text-sm font-medium text-gray-600">Expense Name</label>
+                    <input type="text" id="expenseName" class="mt-1 p-2 border rounded-md w-full md:w-48">
                 </div>
-                <button onclick="addExpense()">Add</button>
+                <div class="w-full md:w-auto">
+                    <label class="block text-sm font-medium text-gray-600">Amount</label>
+                    <div class="relative mt-1">
+                        <span class="absolute left-3 top-2">£</span>
+                        <input type="number" id="expenseAmount" class="pl-6 p-2 border rounded-md w-full md:w-48" step="0.01">
+                    </div>
+                </div>
+                <div class="w-full md:w-auto">
+                    <label class="block text-sm font-medium text-gray-600">Due Date</label>
+                    <select id="expenseDate" class="mt-1 p-2 border rounded-md w-full md:w-48">
+                        <!-- Options will be populated by JavaScript -->
+                    </select>
+                </div>
+                <div class="w-full md:w-auto flex items-end">
+                    <button onclick="addExpense()" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600">Add Expense</button>
+                </div>
             </div>
-            <div id="expense-list" class="expense-list"></div>
+            <div id="expensesList" class="space-y-2"></div>
         </div>
 
-        <!-- Summary Section -->
-        <div class="card">
-            <h2 class="section-heading">Summary</h2>
-            <div class="summary">
-                <div class="summary-item">
-                    <span>Total Income:</span>
-                    <span id="total-income">£0.00</span>
+        <!-- Balance Sheet -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4 text-gray-700">Balance Sheet</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="p-4 bg-gray-50 rounded-md">
+                    <h3 class="text-sm font-medium text-gray-600">Total Income</h3>
+                    <p id="totalIncome" class="text-lg font-semibold text-gray-800">£0.00</p>
                 </div>
-                <div class="summary-item">
-                    <span>Total Savings:</span>
-                    <span id="total-savings">£0.00</span>
+                <div class="p-4 bg-gray-50 rounded-md">
+                    <h3 class="text-sm font-medium text-gray-600">Total Savings</h3>
+                    <p id="totalSavings" class="text-lg font-semibold text-gray-800">£0.00</p>
                 </div>
-                <div class="summary-item">
-                    <span>Total Expenses:</span>
-                    <span id="total-expenses">£0.00</span>
+                <div class="p-4 bg-gray-50 rounded-md">
+                    <h3 class="text-sm font-medium text-gray-600">Total Expenses</h3>
+                    <p id="totalExpenses" class="text-lg font-semibold text-gray-800">£0.00</p>
                 </div>
-                <div class="summary-item">
-                    <span>Remaining:</span>
-                    <span id="remaining">£0.00</span>
+                <div class="p-4 bg-gray-50 rounded-md">
+                    <h3 class="text-sm font-medium text-gray-600">Disposable Income</h3>
+                    <p id="disposableIncome" class="text-lg font-semibold text-gray-800">£0.00</p>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
+        // Data structure
         let financeData = {
-            monthlyIncome: 0,
-            isaSavings: 0,
-            emergencyFund: 0,
+            income: {
+                takeHome: 0,
+                emergencyFund: 0,
+                isa: 0
+            },
             expenses: []
         };
 
-        let editingIndex = -1;
-
-        function loadSavedData() {
-            const saved = localStorage.getItem('financeData');
-            if (saved) {
-                financeData = JSON.parse(saved);
-                updateAllDisplays();
+        // Load data from localStorage
+        function loadData() {
+            const savedData = localStorage.getItem('financeData');
+            if (savedData) {
+                financeData = JSON.parse(savedData);
+                updateUI();
             }
         }
 
+        // Save data to localStorage
         function saveData() {
             localStorage.setItem('financeData', JSON.stringify(financeData));
-            updateAllDisplays();
         }
 
+        // Format currency
         function formatCurrency(amount) {
-            return '£' + parseFloat(amount).toFixed(2);
+            return new Intl.NumberFormat('en-GB', {
+                style: 'currency',
+                currency: 'GBP'
+            }).format(amount);
         }
 
-        function formatAmount(value) {
-            value = value.replace(/[^\d.]/g, '');
-            const parts = value.split('.');
-            if (parts.length > 2) value = parts[0] + '.' + parts.slice(1).join('');
-            if (parts[1]?.length > 2) {
-                value = parseFloat(value).toFixed(2);
-            }
-            return parseFloat(value) || 0;
-        }
-
-        function addExpense() {
-            const name = document.getElementById('expense-name').value.trim();
-            const amount = formatAmount(document.getElementById('expense-amount').value);
-
-            if (name && amount > 0) {
-                financeData.expenses.push({ name, amount });
-                document.getElementById('expense-name').value = '';
-                document.getElementById('expense-amount').value = '';
-                saveData();
+        // Format date with ordinal suffix
+        function getOrdinalSuffix(day) {
+            if (day > 3 && day < 21) return 'th';
+            switch (day % 10) {
+                case 1: return 'st';
+                case 2: return 'nd';
+                case 3: return 'rd';
+                default: return 'th';
             }
         }
 
-        function removeExpense(index) {
-            financeData.expenses.splice(index, 1);
-            saveData();
+        function formatDate(day) {
+            return `${day}${getOrdinalSuffix(day)}`;
         }
 
-        function editExpense(index) {
-            editingIndex = index;
-            updateExpenseList();
-        }
-
-        function saveEdit(index) {
-            const newName = document.getElementById(`edit-name-${index}`).value.trim();
-            const newAmount = formatAmount(document.getElementById(`edit-amount-${index}`).value);
-
-            if (newName && newAmount > 0) {
-                financeData.expenses[index] = { name: newName, amount: newAmount };
-                editingIndex = -1;
-                saveData();
-            }
-        }
-
-        function cancelEdit() {
-            editingIndex = -1;
-            updateExpenseList();
-        }
-
-        function updateExpenseList() {
-            const expenseList = document.getElementById('expense-list');
-            expenseList.innerHTML = financeData.expenses.map((expense, index) => {
-                if (index === editingIndex) {
-                    return `
-                        <div class="expense-item editing">
-                            <div class="edit-form">
-                                <input type="text" id="edit-name-${index}" class="expense-name" value="${expense.name}">
-                                <div class="currency-input">
-                                    <input type="text" id="edit-amount-${index}" class="expense-amount" value="${expense.amount}">
-                                </div>
-                            </div>
-                            <div class="button-group">
-                                <button class="save-button" onclick="saveEdit(${index})">Save</button>
-                                <button class="cancel-button" onclick="cancelEdit()">Cancel</button>
-                            </div>
-                        </div>
-                    `;
-                }
-                return `
-                    <div class="expense-item">
-                        <span>${expense.name}</span>
-                        <span class="expense-amount">${formatCurrency(expense.amount)}</span>
-                        <button class="edit-button" onclick="editExpense(${index})">Edit</button>
-                        <button onclick="removeExpense(${index})">Remove</button>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function updateAllDisplays() {
-            document.getElementById('monthly-income').value = financeData.monthlyIncome || '';
-            document.getElementById('isa-savings').value = financeData.isaSavings || '';
-            document.getElementById('emergency-fund').value = financeData.emergencyFund || '';
-
-            updateExpenseList();
-
-            const totalExpenses = financeData.expenses.reduce((sum, expense) => sum + expense.amount, 0);
-            const totalSavings = financeData.isaSavings + financeData.emergencyFund;
-            const remaining = financeData.monthlyIncome - totalExpenses - totalSavings;
-
-            document.getElementById('total-income').textContent = formatCurrency(financeData.monthlyIncome);
-            document.getElementById('total-savings').textContent = formatCurrency(totalSavings);
-            document.getElementById('total-expenses').textContent = formatCurrency(totalExpenses);
+        // Populate date dropdown
+        function populateDateDropdown() {
+            const dateSelect = document.getElementById('expenseDate');
+            dateSelect.innerHTML = '';
             
-            const remainingElement = document.getElementById('remaining');
-            remainingElement.textContent = formatCurrency(remaining);
-            remainingElement.className = remaining >= 0 ? 'remaining-positive' : 'remaining-negative';
+            for (let i = 1; i <= 31; i++) {
+                const option = document.createElement('option');
+                option.value = i;
+                option.textContent = formatDate(i);
+                dateSelect.appendChild(option);
+            }
         }
 
-        // Event Listeners
-        document.getElementById('monthly-income').addEventListener('input', (e) => {
-            financeData.monthlyIncome = formatAmount(e.target.value);
+        // Update income
+        function updateIncome() {
+            financeData.income.takeHome = Number(document.getElementById('takeHome').value) || 0;
+            financeData.income.emergencyFund = Number(document.getElementById('emergencyFund').value) || 0;
+            financeData.income.isa = Number(document.getElementById('isa').value) || 0;
             saveData();
-        });
+            updateUI();
+        }
 
-        document.getElementById('isa-savings').addEventListener('input', (e) => {
-            financeData.isaSavings = formatAmount(e.target.value);
-            saveData();
-        });
-
-        document.getElementById('emergency-fund').addEventListener('input', (e) => {
-            financeData.emergencyFund = formatAmount(e.target.value);
-            saveData();
-        });
-
-        document.getElementById('expense-amount').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                addExpense();
+        // Add expense
+        function addExpense() {
+            const name = document.getElementById('expenseName').value;
+            const amount = Number(document.getElementById('expenseAmount').value);
+            const date = Number(document.getElementById('expenseDate').value);
+            
+            if (name && amount && date) {
+                financeData.expenses.push({
+                    id: Date.now(),
+                    name,
+                    amount,
+                    date
+                });
+                document.getElementById('expenseName').value = '';
+                document.getElementById('expenseAmount').value = '';
+                document.getElementById('expenseDate').selectedIndex = 0;
+                saveData();
+                updateUI();
             }
-        });
+        }
 
-        loadSavedData();
+        // Delete expense
+        function deleteExpense(id) {
+            financeData.expenses = financeData.expenses.filter(expense => expense.id !== id);
+            saveData();
+            updateUI();
+        }
+
+        // Sort expenses by date
+        function sortExpenses() {
+            financeData.expenses.sort((a, b) => a.date - b.date);
+        }
+
+        // Update UI
+        function updateUI() {
+            // Update income inputs
+            document.getElementById('takeHome').value = financeData.income.takeHome;
+            document.getElementById('emergencyFund').value = financeData.income.emergencyFund;
+            document.getElementById('isa').value = financeData.income.isa;
+
+            // Sort expenses by date
+            sortExpenses();
+
+            // Update expenses list
+            const expensesList = document.getElementById('expensesList');
+            expensesList.innerHTML = financeData.expenses
+                .map(expense => `
+                    <div class="flex justify-between items-center p-2 bg-gray-50 rounded-md">
+                        <div class="flex-1">
+                            <span class="font-medium">${expense.name}</span>
+                            <span class="text-sm text-gray-500 ml-2">(${formatDate(expense.date)})</span>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <span class="text-gray-600">${formatCurrency(expense.amount)}</span>
+                            <button onclick="deleteExpense(${expense.id})" class="text-red-500 hover:text-red-600">Delete</button>
+                        </div>
+                    </div>
+                `)
+                .join('');
+
+            // Calculate totals
+            const totalIncome = financeData.income.takeHome;
+            const totalSavings = financeData.income.emergencyFund + financeData.income.isa;
+            const totalExpenses = financeData.expenses.reduce((sum, expense) => sum + expense.amount, 0);
+            const disposableIncome = totalIncome - totalSavings - totalExpenses;
+
+            // Update balance sheet
+            document.getElementById('totalIncome').textContent = formatCurrency(totalIncome);
+            document.getElementById('totalSavings').textContent = formatCurrency(totalSavings);
+            document.getElementById('totalExpenses').textContent = formatCurrency(totalExpenses);
+            document.getElementById('disposableIncome').textContent = formatCurrency(disposableIncome);
+        }
+
+        // Initialize
+        populateDateDropdown();
+        loadData();
     </script>
 </body>
 </html>
