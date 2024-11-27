@@ -3,16 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tracker</title>
+    <title>Personal Finance Dashboard</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
 </head>
 <body class="bg-gray-100">
     <div class="container mx-auto px-4 py-8">
-        <h1 class="text-3xl font-bold mb-8 text-gray-800">Tracker</h1>
+        <h1 class="text-3xl font-bold mb-4 text-gray-800">Personal Finance Dashboard</h1>
+        
+        <!-- Import/Export Buttons -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4 text-gray-700">Data Management</h2>
+            <div class="flex gap-4">
+                <button onclick="exportToCSV()" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Export to CSV</button>
+                <div class="relative">
+                    <input type="file" id="importFile" accept=".csv" class="hidden" onchange="importFromCSV(this)">
+                    <button onclick="document.getElementById('importFile').click()" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600">Import from CSV</button>
+                </div>
+            </div>
+        </div>
         
         <!-- Income Section -->
         <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-            <h2 class="text-xl font-semibold mb-4 text-gray-700">Monthly Pay</h2>
+            <h2 class="text-xl font-semibold mb-4 text-gray-700">Monthly Income</h2>
             <div class="flex flex-wrap gap-4">
                 <div class="w-full md:w-auto">
                     <label class="block text-sm font-medium text-gray-600">Take Home Pay</label>
@@ -57,7 +69,7 @@
                     </div>
                 </div>
                 <div class="w-full md:w-auto">
-                    <label class="block text-sm font-medium text-gray-600">Payment Date</label>
+                    <label class="block text-sm font-medium text-gray-600">Due Date</label>
                     <select id="expenseDate" class="mt-1 p-2 border rounded-md w-full md:w-48">
                         <!-- Options will be populated by JavaScript -->
                     </select>
@@ -101,7 +113,9 @@
                 takeHome: 0,
                 emergencyFund: 0,
                 isa: 0
-            },
+                    // Initialize
+        populateDateDropdown();
+        loadData();,
             expenses: []
         };
 
@@ -199,11 +213,20 @@
 
         // Add or update expense
         function addOrUpdateExpense() {
-            const name = document.getElementById('expenseName').value;
-            const amount = Number(document.getElementById('expenseAmount').value);
-            const date = Number(document.getElementById('expenseDate').value);
+            const nameInput = document.getElementById('expenseName');
+            const amountInput = document.getElementById('expenseAmount');
+            const dateInput = document.getElementById('expenseDate');
             
-            if (name && amount && date) {
+            const name = nameInput.value.trim();
+            const amount = Number(amountInput.value);
+            const date = Number(dateInput.value);
+            
+            // Add console logs for debugging
+            console.log('Name:', name);
+            console.log('Amount:', amount);
+            console.log('Date:', date);
+            
+            if (name && !isNaN(amount) && amount > 0 && !isNaN(date)) {
                 if (editingExpenseId) {
                     // Update existing expense
                     const index = financeData.expenses.findIndex(e => e.id === editingExpenseId);
@@ -227,9 +250,14 @@
                 }
                 
                 // Clear form
-                document.getElementById('expenseName').value = '';
-                document.getElementById('expenseAmount').value = '';
-                document.getElementById('expenseDate').selectedIndex = 0;
+                nameInput.value = '';
+                amountInput.value = '';
+                dateInput.selectedIndex = 0;
+                
+                // Force blur on inputs to hide mobile keyboard
+                nameInput.blur();
+                amountInput.blur();
+                dateInput.blur();
                 
                 saveData();
                 updateUI();
@@ -289,9 +317,129 @@
             document.getElementById('disposableIncome').textContent = formatCurrency(disposableIncome);
         }
 
-        // Initialize
-        populateDateDropdown();
-        loadData();
+        // Export to CSV
+        function exportToCSV() {
+            // Prepare income data
+            const incomeRow = {
+                type: 'income',
+                name: 'Monthly Income',
+                amount: financeData.income.takeHome,
+                date: '',
+                category: 'income'
+            };
+
+            const savingsRows = [
+                {
+                    type: 'savings',
+                    name: 'Emergency Fund',
+                    amount: financeData.income.emergencyFund,
+                    date: '',
+                    category: 'savings'
+                },
+                {
+                    type: 'savings',
+                    name: 'ISA Contribution',
+                    amount: financeData.income.isa,
+                    date: '',
+                    category: 'savings'
+                }
+            ];
+
+            // Prepare expenses data
+            const expenseRows = financeData.expenses.map(expense => ({
+                type: 'expense',
+                name: expense.name,
+                amount: expense.amount,
+                date: expense.date,
+                category: 'expense'
+            }));
+
+            // Combine all data
+            const allData = [incomeRow, ...savingsRows, ...expenseRows];
+
+            // Convert to CSV
+            const headers = ['type', 'name', 'amount', 'date', 'category'];
+            const csvContent = [
+                headers.join(','),
+                ...allData.map(row => 
+                    headers.map(header => 
+                        row[header] !== undefined && row[header] !== '' 
+                            ? row[header].toString().replace(/,/g, ';') 
+                            : ''
+                    ).join(',')
+                )
+            ].join('\n');
+
+            // Create and trigger download
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.setAttribute('download', 'finance_data.csv');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Import from CSV
+        function importFromCSV(input) {
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const text = e.target.result;
+                    const lines = text.split('\n');
+                    const headers = lines[0].split(',');
+                    
+                    // Reset financial data
+                    financeData = {
+                        income: {
+                            takeHome: 0,
+                            emergencyFund: 0,
+                            isa: 0
+                        },
+                        expenses: []
+                    };
+
+                    // Process each line
+                    lines.slice(1).forEach(line => {
+                        if (line.trim() === '') return;
+                        
+                        const values = line.split(',');
+                        const row = headers.reduce((obj, header, index) => {
+                            obj[header] = values[index];
+                            return obj;
+                        }, {});
+
+                        switch (row.type) {
+                            case 'income':
+                                financeData.income.takeHome = Number(row.amount);
+                                break;
+                            case 'savings':
+                                if (row.name === 'Emergency Fund') {
+                                    financeData.income.emergencyFund = Number(row.amount);
+                                } else if (row.name === 'ISA Contribution') {
+                                    financeData.income.isa = Number(row.amount);
+                                }
+                                break;
+                            case 'expense':
+                                financeData.expenses.push({
+                                    id: Date.now() + Math.random(), // Generate unique ID
+                                    name: row.name,
+                                    amount: Number(row.amount),
+                                    date: Number(row.date)
+                                });
+                                break;
+                        }
+                    });
+
+                    saveData();
+                    updateUI();
+                    input.value = ''; // Reset file input
+                    alert('Data imported successfully!');
+                };
+                reader.readAsText(file);
+            }
+        }
     </script>
 </body>
 </html>
