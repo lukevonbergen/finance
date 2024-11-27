@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Money</title>
+    <title>Personal Finance Dashboard</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
 </head>
 <body class="bg-gray-100">
@@ -22,7 +22,7 @@
                     </div>
                 </div>
                 <div class="w-full md:w-auto">
-                    <label class="block text-sm font-medium text-gray-600">Bank Savings</label>
+                    <label class="block text-sm font-medium text-gray-600">Emergency Fund</label>
                     <div class="relative mt-1">
                         <span class="absolute left-3 top-2">£</span>
                         <input type="number" id="emergencyFund" class="pl-6 p-2 border rounded-md w-full md:w-48" step="0.01">
@@ -62,8 +62,9 @@
                         <!-- Options will be populated by JavaScript -->
                     </select>
                 </div>
-                <div class="w-full md:w-auto flex items-end">
-                    <button onclick="addExpense()" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600">Add Expense</button>
+                <div class="w-full md:w-auto flex items-end gap-2">
+                    <button onclick="addOrUpdateExpense()" id="expenseButton" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600">Add Expense</button>
+                    <button onclick="cancelEdit()" id="cancelButton" class="hidden bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600">Cancel</button>
                 </div>
             </div>
             <div id="expensesList" class="space-y-2"></div>
@@ -103,6 +104,8 @@
             },
             expenses: []
         };
+
+        let editingExpenseId = null; // Track which expense is being edited
 
         // Load data from localStorage
         function loadData() {
@@ -163,22 +166,71 @@
             updateUI();
         }
 
-        // Add expense
-        function addExpense() {
+        // Edit expense
+        function editExpense(id) {
+            const expense = financeData.expenses.find(e => e.id === id);
+            if (expense) {
+                editingExpenseId = id;
+                document.getElementById('expenseName').value = expense.name;
+                document.getElementById('expenseAmount').value = expense.amount;
+                document.getElementById('expenseDate').value = expense.date;
+                
+                // Update button text and show cancel button
+                document.getElementById('expenseButton').textContent = 'Update Expense';
+                document.getElementById('expenseButton').classList.replace('bg-green-500', 'bg-blue-500');
+                document.getElementById('expenseButton').classList.replace('hover:bg-green-600', 'hover:bg-blue-600');
+                document.getElementById('cancelButton').classList.remove('hidden');
+            }
+        }
+
+        // Cancel edit
+        function cancelEdit() {
+            editingExpenseId = null;
+            document.getElementById('expenseName').value = '';
+            document.getElementById('expenseAmount').value = '';
+            document.getElementById('expenseDate').selectedIndex = 0;
+            
+            // Reset button text and hide cancel button
+            document.getElementById('expenseButton').textContent = 'Add Expense';
+            document.getElementById('expenseButton').classList.replace('bg-blue-500', 'bg-green-500');
+            document.getElementById('expenseButton').classList.replace('hover:bg-blue-600', 'hover:bg-green-600');
+            document.getElementById('cancelButton').classList.add('hidden');
+        }
+
+        // Add or update expense
+        function addOrUpdateExpense() {
             const name = document.getElementById('expenseName').value;
             const amount = Number(document.getElementById('expenseAmount').value);
             const date = Number(document.getElementById('expenseDate').value);
             
             if (name && amount && date) {
-                financeData.expenses.push({
-                    id: Date.now(),
-                    name,
-                    amount,
-                    date
-                });
+                if (editingExpenseId) {
+                    // Update existing expense
+                    const index = financeData.expenses.findIndex(e => e.id === editingExpenseId);
+                    if (index !== -1) {
+                        financeData.expenses[index] = {
+                            id: editingExpenseId,
+                            name,
+                            amount,
+                            date
+                        };
+                    }
+                    cancelEdit(); // Reset form and buttons
+                } else {
+                    // Add new expense
+                    financeData.expenses.push({
+                        id: Date.now(),
+                        name,
+                        amount,
+                        date
+                    });
+                }
+                
+                // Clear form
                 document.getElementById('expenseName').value = '';
                 document.getElementById('expenseAmount').value = '';
                 document.getElementById('expenseDate').selectedIndex = 0;
+                
                 saveData();
                 updateUI();
             }
@@ -215,8 +267,9 @@
                             <span class="font-medium">${expense.name}</span>
                             <span class="text-sm text-gray-500 ml-2">(${formatDate(expense.date)})</span>
                         </div>
-                        <div class="flex items-center gap-4">
+                            <div class="flex items-center gap-4">
                             <span class="text-gray-600">${formatCurrency(expense.amount)}</span>
+                            <button onclick="editExpense(${expense.id})" class="text-blue-500 hover:text-blue-600">Edit</button>
                             <button onclick="deleteExpense(${expense.id})" class="text-red-500 hover:text-red-600">Delete</button>
                         </div>
                     </div>
